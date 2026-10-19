@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LocalISOSchema, TimeIntervalSchema } from "./shared/date.dto.ts";
+import { LocalISOSchema, TimeIntervalSchema, TimeZoneSchema } from "./shared/date.dto.ts";
 
 // ===============================
 // MODEL =========================
@@ -39,7 +39,7 @@ export const searchTasksRequestSchema = z
   .object({
     from: LocalISOSchema,
     to: LocalISOSchema,
-    timeZone: z.string(),
+    timeZone: TimeZoneSchema,
   })
   .strict();
 

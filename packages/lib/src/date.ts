@@ -24,6 +24,16 @@ export function getCurrentTimestamp() {
   return Temporal.Now.instant().epochMilliseconds;
 }
 
+// True for any time zone Temporal accepts: IANA names ("Europe/Paris", "Etc/GMT+5"), "UTC", offsets ("+01:00")
+export function isValidTimeZone(timeZone: string): boolean {
+  try {
+    Temporal.Now.zonedDateTimeISO(timeZone);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function toTimestamp(date: LocalISO, timeZone: string) {
   return toRealDate(date, timeZone).toInstant().epochMilliseconds;
 }

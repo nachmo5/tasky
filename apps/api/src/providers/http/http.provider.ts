@@ -125,7 +125,12 @@ export class HttpProvider {
       this.server.withTypeProvider<ZodTypeProvider>().route({
         method: route.method,
         url: route.path,
-        schema: route.schemas,
+        schema: {
+          body: route.schemas.body,
+          querystring: route.schemas.queryParams,
+          params: route.schemas.pathParams,
+          response: route.schemas.response,
+        },
         config: { isPublic: route.isPublic },
         handler: async (request, reply) => {
           const routeResponse = await route.handler({

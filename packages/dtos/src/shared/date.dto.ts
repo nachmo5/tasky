@@ -1,4 +1,4 @@
-import { INTERVAL_UNITS, type LocalISO, type TimeInterval } from "@repo/lib";
+import { INTERVAL_UNITS, isValidTimeZone, type LocalISO, type TimeInterval } from "@repo/lib";
 import z from "zod";
 
 export const IntervalUnitSchema = z.enum(INTERVAL_UNITS);
@@ -11,3 +11,5 @@ export const TimeIntervalSchema = z.object({
 export const LocalISOSchema = z.iso
   .datetime({ local: true })
   .refine((v) => !v.endsWith("Z"), "Expected a date-time without offset") as z.ZodType<LocalISO, string>;
+
+export const TimeZoneSchema = z.string().refine(isValidTimeZone, "Expected a valid time zone, e.g. Europe/Paris");
