@@ -125,11 +125,12 @@ export class HttpProvider {
       this.server.withTypeProvider<ZodTypeProvider>().route({
         method: route.method,
         url: route.path,
+        // Keys left undefined are omitted: Fastify warns (FSTWRN001) about schema keys present without a value
         schema: {
-          body: route.schemas.body,
-          querystring: route.schemas.queryParams,
-          params: route.schemas.pathParams,
-          response: route.schemas.response,
+          ...(route.schemas.body ? { body: route.schemas.body } : {}),
+          ...(route.schemas.queryParams ? { querystring: route.schemas.queryParams } : {}),
+          ...(route.schemas.pathParams ? { params: route.schemas.pathParams } : {}),
+          ...(route.schemas.response ? { response: route.schemas.response } : {}),
         },
         config: { isPublic: route.isPublic },
         handler: async (request, reply) => {
