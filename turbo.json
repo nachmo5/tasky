@@ -17,6 +17,9 @@
     },
     "typecheck": {
       "dependsOn": ["transit"]
+    },
+    "test": {
+      "dependsOn": ["transit"]
     }
   }
 }

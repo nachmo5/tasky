@@ -70,6 +70,10 @@ Run from the root; Turborepo runs the matching script in every workspace that de
 | `npm run build`     | Typechecks, then builds the web app into `apps/web/dist`            |
 | `npm run lint`      | ESLint in every workspace (shared preset in `packages/config`)      |
 | `npm run typecheck` | `tsc` in every workspace                                            |
+| `npm test`          | Vitest in every workspace that has tests (today: `state-manager`)    |
+
+Tests live next to the code as `*.test.ts(x)`. React tests use Testing Library with jsdom; see
+`packages/state-manager/src/testing/fixtures.tsx` for the shared test store and helpers.
 
 Add `--filter=@repo/<name>` to run a single workspace, e.g. `npx turbo run lint --filter=@repo/api`.
 
