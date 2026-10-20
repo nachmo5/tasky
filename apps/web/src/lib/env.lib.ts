@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  API_URL: z.url(),
+  VITE_API_URL: z.url(),
 });
 
-export const ENV = envSchema.parse(import.meta.env);
+type Env = {
+  API_URL: string;
+};
+
+const env = envSchema.parse(import.meta.env);
+
+export const ENV: Env = { API_URL: env.VITE_API_URL };
