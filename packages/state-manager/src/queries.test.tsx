@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   actAndFlush,
   api,
-  deferred,
+  createDeferred,
   flushQueryTeardown,
   initialState,
   renderWithStore,
@@ -18,7 +18,7 @@ function TodoList({ userId, testId = "list" }: { userId: string; testId?: string
   return <p data-testid={testId}>{`${loadTodos.status}${loadTodos.error ? `:${loadTodos.error.message}` : ""}`}</p>;
 }
 
-function signalOfCall(callIndex: number) {
+function getCallSignal(callIndex: number) {
   return api.loadTodos.mock.calls[callIndex]![1];
 }
 
@@ -28,7 +28,7 @@ beforeEach(() => {
 
 describe("queries", () => {
   it("start on mount, report loading, then success with the data written by setters", async () => {
-    const response = deferred<Todo[]>();
+    const response = createDeferred<Todo[]>();
     api.loadTodos.mockReturnValue(response.promise);
     renderWithStore(
       <>
@@ -40,7 +40,7 @@ describe("queries", () => {
     expect(api.loadTodos).toHaveBeenCalledWith("u1", expect.any(AbortSignal));
     expect(screen.getByTestId("list").textContent).toBe("loading");
 
-    await actAndFlush(() => response.resolve([{ title: "loaded", done: false }]));
+    await actAndFlush(() => response.resolve([{ title: "loaded", isDone: false }]));
 
     expect(screen.getByTestId("list").textContent).toBe("success");
     expect(screen.getByTestId("todos").textContent).toBe("loaded");
@@ -72,50 +72,52 @@ describe("queries", () => {
   });
 
   it("abort when the last component using them unmounts, and ignore the late response", async () => {
-    const response = deferred<Todo[]>();
+    const response = createDeferred<Todo[]>();
     api.loadTodos.mockReturnValue(response.promise);
-    function App({ showList }: { showList: boolean }) {
+    function App({ isListVisible }: { isListVisible: boolean }) {
       return (
         <>
-          {showList && <TodoList userId="u1" />}
+          {isListVisible && <TodoList userId="u1" />}
           <TodosProbe />
         </>
       );
     }
-    const { rerender } = renderWithStore(<App showList />);
+    const { rerender } = renderWithStore(<App isListVisible />);
 
-    rerender(<App showList={false} />);
-    // teardown is deferred so a quick remount can reuse the request
-    expect(signalOfCall(0).aborted).toBe(false);
+    rerender(<App isListVisible={false} />);
+    // teardown is createDeferred so a quick remount can reuse the request
+    expect(getCallSignal(0).aborted).toBe(false);
     await flushQueryTeardown();
-    expect(signalOfCall(0).aborted).toBe(true);
+    expect(getCallSignal(0).aborted).toBe(true);
 
-    await actAndFlush(() => response.resolve([{ title: "late", done: false }]));
+    await actAndFlush(() => response.resolve([{ title: "late", isDone: false }]));
 
     expect(screen.getByTestId("todos").textContent).toBe("a,b");
   });
 
   it("stay alive while another component still uses them", async () => {
-    api.loadTodos.mockReturnValue(deferred<Todo[]>().promise);
-    function App({ showSecond }: { showSecond: boolean }) {
+    api.loadTodos.mockReturnValue(createDeferred<Todo[]>().promise);
+    function App({ isSecondVisible }: { isSecondVisible: boolean }) {
       return (
         <>
           <TodoList userId="u1" testId="first" />
-          {showSecond && <TodoList userId="u1" testId="second" />}
+          {isSecondVisible && <TodoList userId="u1" testId="second" />}
         </>
       );
     }
-    const { rerender } = renderWithStore(<App showSecond />);
+    const { rerender } = renderWithStore(<App isSecondVisible />);
 
-    rerender(<App showSecond={false} />);
+    rerender(<App isSecondVisible={false} />);
     await flushQueryTeardown();
 
-    expect(signalOfCall(0).aborted).toBe(false);
+    expect(getCallSignal(0).aborted).toBe(false);
   });
 
   it("abort the previous request and start a new one when args change", async () => {
-    const firstResponse = deferred<Todo[]>();
-    api.loadTodos.mockReturnValueOnce(firstResponse.promise).mockResolvedValueOnce([{ title: "u2 todo", done: false }]);
+    const firstResponse = createDeferred<Todo[]>();
+    api.loadTodos
+      .mockReturnValueOnce(firstResponse.promise)
+      .mockResolvedValueOnce([{ title: "u2 todo", isDone: false }]);
     const { rerender } = renderWithStore(
       <>
         <TodoList userId="u1" />
@@ -131,11 +133,11 @@ describe("queries", () => {
     );
     await flushQueryTeardown();
     // the stale u1 response arrives after u2's
-    await actAndFlush(() => firstResponse.resolve([{ title: "u1 todo", done: false }]));
+    await actAndFlush(() => firstResponse.resolve([{ title: "u1 todo", isDone: false }]));
 
     expect(api.loadTodos.mock.calls.map(([userId]) => userId)).toEqual(["u1", "u2"]);
-    expect(signalOfCall(0).aborted).toBe(true);
-    expect(signalOfCall(1).aborted).toBe(false);
+    expect(getCallSignal(0).aborted).toBe(true);
+    expect(getCallSignal(1).aborted).toBe(false);
     expect(screen.getByTestId("todos").textContent).toBe("u2 todo");
   });
 
@@ -151,21 +153,21 @@ describe("queries", () => {
     await flushQueryTeardown();
 
     expect(api.loadTodos).toHaveBeenCalledTimes(1);
-    expect(signalOfCall(0).aborted).toBe(false);
+    expect(getCallSignal(0).aborted).toBe(false);
     expect(screen.getByTestId("list").textContent).toBe("success");
   });
 
   it("fetch again when remounted after being torn down", async () => {
     api.loadTodos.mockResolvedValue([]);
-    function App({ showList }: { showList: boolean }) {
-      return showList ? <TodoList userId="u1" /> : null;
+    function App({ isListVisible }: { isListVisible: boolean }) {
+      return isListVisible ? <TodoList userId="u1" /> : null;
     }
-    const { rerender } = renderWithStore(<App showList />);
+    const { rerender } = renderWithStore(<App isListVisible />);
     await actAndFlush();
 
-    rerender(<App showList={false} />);
+    rerender(<App isListVisible={false} />);
     await flushQueryTeardown();
-    rerender(<App showList />);
+    rerender(<App isListVisible />);
     await actAndFlush();
 
     expect(api.loadTodos).toHaveBeenCalledTimes(2);

@@ -1,26 +1,12 @@
-import type { LoginRequest, LoginResponse, MeResponse, SearchTasksRequest, SearchTasksResponse } from "@repo/dtos";
 import { ENV } from "./env.lib";
 
-// Read functions accept the query's AbortSignal so the request is cancelled when no component needs it anymore
-export function searchTasks(data: SearchTasksRequest, signal?: AbortSignal) {
-  return sendRequest<SearchTasksResponse>("/tasks", { queryString: data, signal });
-}
-
-export function fetchMe(signal?: AbortSignal) {
-  return sendRequest<MeResponse>("/auth/me", { signal });
-}
-
-export function login(data: LoginRequest) {
-  return sendRequest<LoginResponse>("/auth/login", { body: data, method: "POST" });
-}
-
-async function sendRequest<TResponse>(
+export async function sendRequest<TResponse>(
   path: string,
   options?: {
     body?: unknown;
     queryString?: Record<string, string>;
     responseType?: "text" | "json";
-    method?: "POST" | "GET" | "DELETE" | "PUT";
+    method?: "POST" | "GET" | "DELETE" | "PUT" | "PATCH";
     signal?: AbortSignal;
   },
 ) {

@@ -1,25 +1,44 @@
-import type { Task } from "@repo/dtos";
-import type { TaskOccurence } from "../../operations/types.operation.ts";
+import type { TaskOccurrenceDTO, TaskTemplateChangesDTO, TaskTemplateDTO } from "@repo/dtos";
+import type { TaskOccurrence, TaskTemplate, TaskTemplateChanges } from "../../operations/types.operation.ts";
 
-export function taskOccurrenceToTask(taskOccurrence: TaskOccurence): Task {
+export function taskOccurrenceToDTO(taskOccurrence: TaskOccurrence): TaskOccurrenceDTO {
   return {
     id: taskOccurrence.id,
-    taskTemplateId: taskOccurrence.taskTemplate.id,
     startDate: taskOccurrence.localStartDate,
     dueDate: taskOccurrence.localDueDate,
     status: taskOccurrence.status,
     completedAt: taskOccurrence.completedAt?.toISOString() ?? null,
-    title: taskOccurrence.taskTemplate.title,
-    description: taskOccurrence.taskTemplate.description,
-    priority: mapTaskPriority(taskOccurrence.taskTemplate.priority),
-    estimatedMn: taskOccurrence.taskTemplate.estimatedMn,
-    tags: taskOccurrence.taskTemplate.tags,
-    firstOccurrenceStartDate: taskOccurrence.taskTemplate.firstOccurrenceLocalStartDate,
-    nextOccurrenceEvery: taskOccurrence.taskTemplate.nextOccurrenceEvery,
-    overdueAfter: taskOccurrence.taskTemplate.overdueAfter,
+    template: taskTemplateToDTO(taskOccurrence.taskTemplate),
   };
 }
 
-function mapTaskPriority(priority: number): Task["priority"] {
-  return ({ 0: "low", 1: "medium", 2: "high" }[priority] as Task["priority"]) ?? "high";
+export function taskTemplateToDTO(taskTemplate: TaskTemplate): TaskTemplateDTO {
+  return {
+    id: taskTemplate.id,
+    title: taskTemplate.title,
+    description: taskTemplate.description,
+    priority: mapTaskPriority(taskTemplate.priority),
+    estimatedMn: taskTemplate.estimatedMn,
+    tags: taskTemplate.tags,
+    firstOccurrenceStartDate: taskTemplate.firstOccurrenceLocalStartDate,
+    nextOccurrenceEvery: taskTemplate.nextOccurrenceEvery,
+    overdueAfter: taskTemplate.overdueAfter,
+  };
+}
+
+export function taskTemplateChangesFromDTO(changes: TaskTemplateChangesDTO): TaskTemplateChanges {
+  const { priority, firstOccurrenceStartDate, ...sameNameChanges } = changes;
+  return {
+    ...sameNameChanges,
+    ...(priority ? { priority: mapTaskPriorityToNumber(priority) } : {}),
+    ...(firstOccurrenceStartDate ? { firstOccurrenceLocalStartDate: firstOccurrenceStartDate } : {}),
+  };
+}
+
+function mapTaskPriority(priority: number): TaskTemplateDTO["priority"] {
+  return ({ 0: "low", 1: "medium", 2: "high" }[priority] as TaskTemplateDTO["priority"]) ?? "high";
+}
+
+function mapTaskPriorityToNumber(priority: TaskTemplateDTO["priority"]): number {
+  return { low: 0, medium: 1, high: 2 }[priority];
 }

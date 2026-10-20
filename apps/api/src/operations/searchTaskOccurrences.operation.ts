@@ -7,7 +7,7 @@ import {
   type TimeInterval,
 } from "@repo/lib";
 import type { Providers } from "../providers/types.provider.ts";
-import type { TaskOccurence, TaskTemplate, User } from "./types.operation.ts";
+import type { TaskOccurrence, TaskTemplate, User } from "./types.operation.ts";
 
 export async function searchTaskOccurrences(
   args: {
@@ -17,7 +17,7 @@ export async function searchTaskOccurrences(
   },
   user: User,
   providers: Pick<Providers, "db">,
-): Promise<TaskOccurence[]> {
+): Promise<TaskOccurrence[]> {
   const { fromLocal, toLocal, timeZone } = args;
   const taskTemplates = await providers.db.queries.selectTaskTemplates(user.id);
   return taskTemplates
@@ -32,7 +32,7 @@ function generateTaskOccurrences(args: {
   fromLocal: LocalISO;
   toLocal: LocalISO;
   timeZone: string;
-}): TaskOccurence[] {
+}): TaskOccurrence[] {
   const { taskTemplate, fromLocal, toLocal, timeZone } = args;
   const fromLocalTimestamp = toTimestamp(fromLocal, timeZone);
   const toLocalTimestamp = toTimestamp(toLocal, timeZone);
@@ -50,14 +50,14 @@ function generateTaskOccurrences(args: {
           }),
         ];
   }
-  let nbOfOccurrences = computeNbOfOccurencesBefore({
+  let nbOfOccurrences = computeNbOfOccurrencesBefore({
     firstOccurrenceLocalStartDate: taskTemplate.firstOccurrenceLocalStartDate,
     nextOccurrenceEvery: taskTemplate.nextOccurrenceEvery,
     toLocal,
     timeZone,
   });
 
-  const taskOccurrences: TaskOccurence[] = [];
+  const taskOccurrences: TaskOccurrence[] = [];
 
   while (nbOfOccurrences > 0 && taskOccurrences.length < MAX_OCCURRENCES_PER_TASK) {
     const taskOccurrence = generateTaskOccurrence({
@@ -89,14 +89,14 @@ function generateTaskOccurrence(args: {
   localStartDate: LocalISO;
   timeZone: string;
   now: number;
-}): TaskOccurence {
+}): TaskOccurrence {
   const { taskTemplate, localStartDate, timeZone, now } = args;
 
   const localDueDate = taskTemplate.overdueAfter
     ? addInterval(localStartDate, taskTemplate.overdueAfter, timeZone)
     : null;
 
-  let status: TaskOccurence["status"] = "pending";
+  let status: TaskOccurrence["status"] = "pending";
   const completedOccurrence = taskTemplate.completedOccurrences.find((co) => co.localStartDate == localStartDate);
 
   if (completedOccurrence) {
@@ -116,7 +116,7 @@ function generateTaskOccurrence(args: {
 }
 
 /* n = 1 +  (to - start_date) / interval  */
-function computeNbOfOccurencesBefore(args: {
+function computeNbOfOccurrencesBefore(args: {
   firstOccurrenceLocalStartDate: LocalISO;
   nextOccurrenceEvery: TimeInterval;
   toLocal: LocalISO;
@@ -127,25 +127,25 @@ function computeNbOfOccurencesBefore(args: {
   if (diff < 0) return 0;
 
   /* Temporal.until is not precise, it can be wrong in both direction by 1 */
-  let estimatedNbOfOccurences = 1 + Math.floor(diff / nextOccurrenceEvery.count);
+  let estimatedNbOfOccurrences = 1 + Math.floor(diff / nextOccurrenceEvery.count);
 
-  const computeOccurenceStartDate = (occurenceNb: number) =>
+  const computeOccurrenceStartDate = (occurrenceNb: number) =>
     addInterval(
       firstOccurrenceLocalStartDate,
-      { unit: nextOccurrenceEvery.unit, count: nextOccurrenceEvery.count * (occurenceNb - 1) },
+      { unit: nextOccurrenceEvery.unit, count: nextOccurrenceEvery.count * (occurrenceNb - 1) },
       timeZone,
     );
 
   while (
-    estimatedNbOfOccurences > 0 &&
-    toTimestamp(computeOccurenceStartDate(estimatedNbOfOccurences), timeZone) >= toTimestamp(toLocal, timeZone)
+    estimatedNbOfOccurrences > 0 &&
+    toTimestamp(computeOccurrenceStartDate(estimatedNbOfOccurrences), timeZone) >= toTimestamp(toLocal, timeZone)
   ) {
-    estimatedNbOfOccurences -= 1;
+    estimatedNbOfOccurrences -= 1;
   }
   while (
-    toTimestamp(computeOccurenceStartDate(estimatedNbOfOccurences + 1), timeZone) < toTimestamp(toLocal, timeZone)
+    toTimestamp(computeOccurrenceStartDate(estimatedNbOfOccurrences + 1), timeZone) < toTimestamp(toLocal, timeZone)
   ) {
-    estimatedNbOfOccurences += 1;
+    estimatedNbOfOccurrences += 1;
   }
-  return estimatedNbOfOccurences;
+  return estimatedNbOfOccurrences;
 }

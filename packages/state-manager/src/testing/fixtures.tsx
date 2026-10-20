@@ -3,7 +3,7 @@ import { type ReactNode } from "react";
 import { vi } from "vitest";
 import { createStore } from "../index";
 
-export type Todo = { title: string; done: boolean };
+export type Todo = { title: string; isDone: boolean };
 export type TodoState = { todos: Todo[] };
 
 // Fake API: each test decides when and how its calls settle
@@ -15,7 +15,7 @@ export const api = {
 export const TodoStore = createStore<TodoState>()
   .addGetters({
     todos: (state) => state.todos,
-    remaining: (state) => state.todos.filter((todo) => !todo.done).length,
+    remaining: (state) => state.todos.filter((todo) => !todo.isDone).length,
     todoTitle: (state, index: number) => state.todos[index]?.title,
   })
   .addSetters({
@@ -23,13 +23,13 @@ export const TodoStore = createStore<TodoState>()
       state.todos = todos;
     },
     pushTodo: (state, title: string) => {
-      state.todos.push({ title, done: false });
+      state.todos.push({ title, isDone: false });
     },
     renameTodo: (state, index: number, title: string) => {
       state.todos[index]!.title = title;
     },
     toggleTodo: (state, index: number) => {
-      state.todos[index]!.done = !state.todos[index]!.done;
+      state.todos[index]!.isDone = !state.todos[index]!.isDone;
     },
   })
   .addQueries({
@@ -46,8 +46,8 @@ export const TodoStore = createStore<TodoState>()
 
 export const initialState: TodoState = {
   todos: [
-    { title: "a", done: false },
-    { title: "b", done: true },
+    { title: "a", isDone: false },
+    { title: "b", isDone: true },
   ],
 };
 
@@ -66,7 +66,7 @@ export function TodosProbe() {
   return <p data-testid="todos">{todos.map((todo) => todo.title).join(",")}</p>;
 }
 
-export function deferred<T>() {
+export function createDeferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: unknown) => void;
   const promise = new Promise<T>((res, rej) => {
@@ -76,7 +76,7 @@ export function deferred<T>() {
   return { promise, resolve, reject };
 }
 
-// Runs `update` (e.g. resolving a deferred) and lets the resulting promise callbacks and re-renders finish
+// Runs `update` (e.g. resolving a deferred promise) and lets the resulting promise callbacks and re-renders finish
 export async function actAndFlush(update: () => void = () => {}) {
   await act(async () => {
     update();

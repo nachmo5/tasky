@@ -14,13 +14,32 @@ export type TaskTemplate = {
   completedOccurrences: CompletedOccurrence[];
 };
 
+export type TaskTemplateChanges = Partial<
+  Pick<
+    TaskTemplate,
+    | "title"
+    | "description"
+    | "priority"
+    | "estimatedMn"
+    | "overdueAfter"
+    | "firstOccurrenceLocalStartDate"
+    | "nextOccurrenceEvery"
+    | "tags"
+  >
+>;
+
+export type TaskTemplateUpdate = {
+  id: string;
+  changes: TaskTemplateChanges;
+};
+
 type CompletedOccurrence = {
   localStartDate: LocalISO;
   completedAt: Date;
   isCancelled: boolean;
 };
 
-export type TaskOccurence = {
+export type TaskOccurrence = {
   id: string;
   status: "pending" | "overdue" | "done" | "cancelled";
   localStartDate: LocalISO;

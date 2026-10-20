@@ -1,8 +1,9 @@
 import { GlobalConsumer } from "@/config/store";
 import { LoginForm } from "../blocks/LoginForm";
-import { redirect } from "@/lib/routes.lib";
+import { useNavigate } from "react-router";
 
 export function LoginContainer() {
+  const navigate = useNavigate();
   return (
     <GlobalConsumer mutations={["login"]}>
       {({ login }) => (
@@ -17,7 +18,7 @@ export function LoginContainer() {
               const password = (formData.get("password") as string | undefined)?.toString();
 
               if (email && password) {
-                void login({ username: email, password: password }).then(() => redirect("/"));
+                void login({ username: email, password: password }).then(() => navigate("/", { replace: true }));
               }
             },
           }}

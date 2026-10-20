@@ -1,6 +1,6 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { actAndFlush, api, deferred, renderWithStore, TodoStore, TodosProbe } from "./testing/fixtures";
+import { actAndFlush, api, createDeferred, renderWithStore, TodoStore, TodosProbe } from "./testing/fixtures";
 
 function AddTodo({ onError = () => {} }: { onError?: (error: unknown) => void }) {
   const { addTodo } = TodoStore.useMutations(["addTodo"]);
@@ -24,7 +24,7 @@ describe("mutations", () => {
   });
 
   it("report loading then success, and apply their setters", async () => {
-    const response = deferred<void>();
+    const response = createDeferred<void>();
     api.saveTodo.mockReturnValue(response.promise);
     renderWithStore(
       <>
@@ -63,8 +63,8 @@ describe("mutations", () => {
   });
 
   it("keep the status of the latest call when an older call settles later", async () => {
-    const firstCall = deferred<void>();
-    const secondCall = deferred<void>();
+    const firstCall = createDeferred<void>();
+    const secondCall = createDeferred<void>();
     api.saveTodo.mockReturnValueOnce(firstCall.promise).mockReturnValueOnce(secondCall.promise);
     renderWithStore(<AddTodo />);
 
@@ -77,20 +77,20 @@ describe("mutations", () => {
   });
 
   it("still apply their setters when the component unmounts before they finish", async () => {
-    const response = deferred<void>();
+    const response = createDeferred<void>();
     api.saveTodo.mockReturnValue(response.promise);
-    function App({ showForm }: { showForm: boolean }) {
+    function App({ isFormVisible }: { isFormVisible: boolean }) {
       return (
         <>
-          {showForm && <AddTodo />}
+          {isFormVisible && <AddTodo />}
           <TodosProbe />
         </>
       );
     }
-    const { rerender } = renderWithStore(<App showForm />);
+    const { rerender } = renderWithStore(<App isFormVisible />);
 
     fireEvent.click(screen.getByRole("button"));
-    rerender(<App showForm={false} />);
+    rerender(<App isFormVisible={false} />);
     await actAndFlush(() => response.resolve());
 
     expect(screen.getByTestId("todos").textContent).toBe("a,b,new");

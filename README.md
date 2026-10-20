@@ -3,12 +3,12 @@
 A Turborepo monorepo meant to be the starting point for new projects: a React SPA, a Fastify API and a
 Postgres database, wired together with shared, typed contracts.
 
-| Layer    | Stack                                                                  |
-| -------- | ---------------------------------------------------------------------- |
+| Layer    | Stack                                                                      |
+| -------- | -------------------------------------------------------------------------- |
 | Frontend | React 19, Vite, Tailwind CSS 4, shadcn/ui (Base UI), `@repo/state-manager` |
-| Backend  | Fastify 5, Zod (`fastify-type-provider-zod`), pino, Swagger            |
-| Database | Postgres 18 (Docker), Drizzle ORM                                      |
-| Tooling  | Turborepo, npm workspaces, TypeScript 6 (no build step), ESLint, Prettier |
+| Backend  | Fastify 5, Zod (`fastify-type-provider-zod`), pino, Swagger                |
+| Database | Postgres 18 (Docker), Drizzle ORM                                          |
+| Tooling  | Turborepo, npm workspaces, TypeScript 6 (no build step), ESLint, Prettier  |
 
 TypeScript is never compiled for the backend: Node ≥ 24 runs `.ts` files directly through type stripping, and
 Vite bundles the frontend. Hence the `erasableSyntaxOnly` / `allowImportingTsExtensions` compiler options and
@@ -64,13 +64,13 @@ npm start                             # api on http://localhost:3000 (Swagger at
 
 Run from the root; Turborepo runs the matching script in every workspace that defines it.
 
-| Command             | What it does                                                        |
-| ------------------- | ------------------------------------------------------------------- |
-| `npm start`         | Starts the API and the web dev server                               |
-| `npm run build`     | Typechecks, then builds the web app into `apps/web/dist`            |
-| `npm run lint`      | ESLint in every workspace (shared preset in `packages/config`)      |
-| `npm run typecheck` | `tsc` in every workspace                                            |
-| `npm test`          | Vitest in every workspace that has tests (today: `state-manager`)    |
+| Command             | What it does                                                      |
+| ------------------- | ----------------------------------------------------------------- |
+| `npm start`         | Starts the API and the web dev server                             |
+| `npm run build`     | Typechecks, then builds the web app into `apps/web/dist`          |
+| `npm run lint`      | ESLint in every workspace (shared preset in `packages/config`)    |
+| `npm run typecheck` | `tsc` in every workspace                                          |
+| `npm test`          | Vitest in every workspace that has tests (today: `state-manager`) |
 
 Tests live next to the code as `*.test.ts(x)`. React tests use Testing Library with jsdom; see
 `packages/state-manager/src/testing/fixtures.tsx` for the shared test store and helpers.
@@ -86,13 +86,13 @@ browser globals (and the React Hooks / React Refresh plugins for React code).
 
 ### Environment variables
 
-| App   | Variable       | Purpose                                    |
-| ----- | -------------- | ------------------------------------------ |
-| api   | `PORT`         | HTTP port                                  |
-| api   | `NODE_ENV`     | `development` \| `production` \| `test`    |
-| api   | `DATABASE_URL` | Postgres connection string                 |
-| api   | `WEB_URL`      | Allowed CORS origin (the web app URL)      |
-| web   | `VITE_API_URL` | Base URL of the API                        |
+| App | Variable       | Purpose                                 |
+| --- | -------------- | --------------------------------------- |
+| api | `PORT`         | HTTP port                               |
+| api | `NODE_ENV`     | `development` \| `production` \| `test` |
+| api | `DATABASE_URL` | Postgres connection string              |
+| api | `WEB_URL`      | Allowed CORS origin (the web app URL)   |
+| web | `VITE_API_URL` | Base URL of the API                     |
 
 The API validates its environment with Zod at startup (`EnvProvider`) and exits if anything is missing.
 
@@ -126,14 +126,14 @@ export async function searchTaskOccurrences(args, user: User, providers: Pick<Pr
 **Providers** are classes that hide a library behind a stable API. Swapping a library (in-memory cache →
 Redis, session auth → Supabase) means rewriting one provider; operations do not change.
 
-| Provider           | Wraps                         | Current implementation      | Planned            |
-| ------------------ | ----------------------------- | --------------------------- | ------------------ |
-| `EnvProvider`      | `process.env` + Zod           | —                           | —                  |
-| `LogProvider`      | pino                          | pino-pretty in dev, JSON otherwise | —           |
-| `CacheProvider`    | key/value store with TTL      | in-memory object            | Redis              |
-| `DatabaseProvider` | Drizzle + node-postgres       | `client` + named `queries`  | —                  |
-| `AuthProvider`     | sessions                      | DB sessions + scrypt hashes | Supabase Auth      |
-| `HttpProvider`     | Fastify + plugins             | —                           | —                  |
+| Provider           | Wraps                    | Current implementation             | Planned       |
+| ------------------ | ------------------------ | ---------------------------------- | ------------- |
+| `EnvProvider`      | `process.env` + Zod      | —                                  | —             |
+| `LogProvider`      | pino                     | pino-pretty in dev, JSON otherwise | —             |
+| `CacheProvider`    | key/value store with TTL | in-memory object                   | Redis         |
+| `DatabaseProvider` | Drizzle + node-postgres  | `client` + named `queries`         | —             |
+| `AuthProvider`     | sessions                 | DB sessions + scrypt hashes        | Supabase Auth |
+| `HttpProvider`     | Fastify + plugins        | —                                  | —             |
 
 Providers receive their own dependencies through the constructor (`new AuthProvider({ db, cache })`). All
 wiring happens in `main.ts` — there is no DI container.
@@ -222,12 +222,12 @@ src/components/
   pages/       One per route; composes containers and blocks into a layout
 ```
 
-| Layer        | May import                     | Store access | Owns data fetching | Example            |
-| ------------ | ------------------------------ | ------------ | ------------------ | ------------------ |
-| `base`       | other `base`, `cn`             | ❌           | ❌                 | `button.tsx`       |
-| `blocks`     | `base`, other `blocks`, DTO types | ❌        | ❌                 | `LoginForm.tsx`    |
-| `containers` | `blocks`, `base`, store, `lib` | ✅           | ✅                 | `LoginContainer.tsx` |
-| `pages`      | `containers`, `blocks`, `base` | ❌ (prefer)  | ❌                 | `HomePage.tsx`     |
+| Layer        | May import                        | Store access | Owns data fetching | Example              |
+| ------------ | --------------------------------- | ------------ | ------------------ | -------------------- |
+| `base`       | other `base`, `cn`                | ❌           | ❌                 | `button.tsx`         |
+| `blocks`     | `base`, other `blocks`, DTO types | ❌           | ❌                 | `LoginForm.tsx`      |
+| `containers` | `blocks`, `base`, store, `lib`    | ✅           | ✅                 | `LoginContainer.tsx` |
+| `pages`      | `containers`, `blocks`, `base`    | ❌ (prefer)  | ❌                 | `HomePage.tsx`       |
 
 Rules:
 
@@ -267,11 +267,12 @@ The global store is declared once in `config/store.ts`:
 
   ```ts
   searchTasks: async (state, body: SearchTasksRequest) => {
-    state.setTasks(await searchTasks(body, state.signal));
+    state.setTaskOccurrences(await searchTasks(body, state.signal));
   },
   ```
 
   Mutations get no signal on purpose: a save or a login should finish even if the component unmounts.
+
 - **mutations**: async writes triggered by the user, with `status`/`error` on the returned function
 
 Containers request what they need by name:
@@ -294,28 +295,5 @@ set by the API, so every request uses `credentials: "include"`.
 
 ## Conventions
 
-### File naming
-
-| Kind                    | Pattern                       | Example                     |
-| ----------------------- | ----------------------------- | --------------------------- |
-| Backend provider        | `<name>.provider.ts`          | `cache.provider.ts`         |
-| Provider internals      | `<role>.<provider>.ts`        | `queries.database.ts`, `routes.http.ts` |
-| Operation               | `<feature>.operation.ts`      | `task.operation.ts`         |
-| DTO                     | `<feature>.dto.ts`            | `task.dto.ts`               |
-| Frontend lib            | `<name>.lib.ts`               | `api.lib.ts`                |
-| React components        | `PascalCase.tsx`              | `TaskListContainer.tsx`     |
-| shadcn base components  | `kebab-case.tsx`              | `button.tsx`                |
-
-### Naming
-
-- DB tables: `db` prefix (`dbUsers`). Domain types: plain names (`User`, `TaskTemplate`). DTO types:
-  plain names or a `DTO` suffix when they clash with a domain type (`UserDTO`).
-- Zod schemas: `camelCaseSchema` (`loginRequestSchema`), with the type inferred next to it.
-- Containers end with `Container`, pages with `Page`.
-
-### Code
-
-- Named exports only.
-- `import type` for type-only imports (enforced by ESLint and `verbatimModuleSyntax`).
-- Strict TypeScript including `noUncheckedIndexedAccess`.
-- Prettier with `printWidth: 120`.
+Naming, function style, file structure and file naming rules are in [CONVENTIONS.md](CONVENTIONS.md).
+Read it before adding code.

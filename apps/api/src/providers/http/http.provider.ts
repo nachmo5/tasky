@@ -69,6 +69,7 @@ export class HttpProvider {
 
     await this.server.register(fastifyCors, {
       origin: (origin, cb) => cb(null, (origin ?? "") === this.providers.env.get("WEB_URL")),
+      methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
     });
 

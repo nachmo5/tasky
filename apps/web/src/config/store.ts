@@ -1,35 +1,63 @@
-import { type LoginRequest, type SearchTasksRequest, type Task, type UserDTO } from "@repo/dtos";
+import { sendRequest } from "@/lib/api.lib";
+import {
+  type LoginRequest,
+  type LoginResponse,
+  type MeResponse,
+  type SearchTaskOccurrencesRequest,
+  type SearchTaskOccurrencesResponse,
+  type SearchTaskTemplatesResponse,
+  type TaskOccurrenceDTO,
+  type TaskTemplateDTO,
+  type UpdateTaskTemplatesRequest,
+  type UpdateTaskTemplatesResponse,
+  type UserDTO,
+} from "@repo/dtos";
 import { createStore } from "@repo/state-manager";
-import { fetchMe, login, searchTasks } from "../lib/api.lib";
 
 type GlobalStore = {
   user: UserDTO | null;
-  tasks: Task[];
+  taskOccurrences: TaskOccurrenceDTO[];
+  taskTemplates: TaskTemplateDTO[];
 };
 
 export const globalStoreInitialValue: GlobalStore = {
   user: null,
-  tasks: [],
+  taskOccurrences: [],
+  taskTemplates: [],
 };
 
 const globalStore = createStore<GlobalStore>()
   .addGetters({
-    tasks: (state) => state.tasks,
+    taskOccurrences: (state) => state.taskOccurrences,
+    taskTemplates: (state) => state.taskTemplates,
     user: (state) => state.user,
   })
   .addSetters({
-    setTasks: (state, tasks: Task[]) => (state.tasks = tasks),
+    setTaskOccurrences: (state, taskOccurrences: TaskOccurrenceDTO[]) => (state.taskOccurrences = taskOccurrences),
+    setTaskTemplates: (state, taskTemplates: TaskTemplateDTO[]) => (state.taskTemplates = taskTemplates),
+    replaceTaskTemplates: (state, updatedTaskTemplates: TaskTemplateDTO[]) =>
+      (state.taskTemplates = state.taskTemplates.map(
+        (taskTemplate) => updatedTaskTemplates.find((updated) => updated.id === taskTemplate.id) ?? taskTemplate,
+      )),
     setUser: (state, user: GlobalStore["user"]) => (state.user = user),
   })
-  // Queries pass state.signal to their API call: it is aborted when no component uses the query anymore
   .addQueries({
-    searchTasks: async (state, body: SearchTasksRequest) => {
-      const tasks = await searchTasks(body, state.signal);
-      state.setTasks(tasks);
+    searchTaskOccurrences: async (state, data: SearchTaskOccurrencesRequest) => {
+      state.setTaskOccurrences(
+        await sendRequest<SearchTaskOccurrencesResponse>("/task-occurrences", {
+          queryString: data,
+          signal: state.signal,
+        }),
+      );
+    },
+    searchTaskTemplates: async (state) => {
+      state.setTaskTemplates(
+        await sendRequest<SearchTaskTemplatesResponse>("/task-templates", { signal: state.signal }),
+      );
     },
     fetchMe: async (state) => {
       try {
-        const user = await fetchMe(state.signal);
+        const user = await sendRequest<MeResponse>("/auth/me", { signal: state.signal });
         state.setUser(user);
       } catch (_e) {
         state.setUser(null);
@@ -37,9 +65,14 @@ const globalStore = createStore<GlobalStore>()
     },
   })
   .addMutations({
-    login: async (state, body: LoginRequest) => {
-      const response = await login(body);
+    login: async (state, data: LoginRequest) => {
+      const response = await sendRequest<LoginResponse>("/auth/login", { body: data, method: "POST" });
       state.setUser(response);
+    },
+    updateTaskTemplates: async (state, data: UpdateTaskTemplatesRequest) => {
+      state.replaceTaskTemplates(
+        await sendRequest<UpdateTaskTemplatesResponse>("/task-templates/update", { body: data, method: "PATCH" }),
+      );
     },
   });
 

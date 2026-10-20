@@ -9,33 +9,37 @@ export const taskStatusEnumSchema = z.enum(["pending", "overdue", "done", "cance
 
 export const taskPriorityEnumSchema = z.enum(["low", "medium", "high"]);
 
-export const taskSchema = z
+export const taskTemplateSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  priority: taskPriorityEnumSchema,
+  estimatedMn: z.number(),
+  tags: z.record(z.string(), z.string()),
+  firstOccurrenceStartDate: LocalISOSchema,
+  nextOccurrenceEvery: TimeIntervalSchema.nullable(),
+  overdueAfter: TimeIntervalSchema.nullable(),
+});
+
+export type TaskTemplateDTO = z.infer<typeof taskTemplateSchema>;
+
+export const taskOccurrenceSchema = z
   .object({
-    // occurrence
     id: z.string(),
-    taskTemplateId: z.string(),
     startDate: LocalISOSchema,
     dueDate: LocalISOSchema.nullable(),
     status: taskStatusEnumSchema,
     completedAt: z.string().nullable(),
-    // template
-    title: z.string(),
-    description: z.string().nullable(),
-    priority: taskPriorityEnumSchema,
-    estimatedMn: z.number(),
-    tags: z.record(z.string(), z.string()),
-    firstOccurrenceStartDate: LocalISOSchema,
-    nextOccurrenceEvery: TimeIntervalSchema.nullable(),
-    overdueAfter: TimeIntervalSchema.nullable(),
+    template: taskTemplateSchema,
   })
   .strict();
 
-export type Task = z.infer<typeof taskSchema>;
+export type TaskOccurrenceDTO = z.infer<typeof taskOccurrenceSchema>;
 
 // ================================
 // ROUTES =========================
 // ================================
-export const searchTasksRequestSchema = z
+export const searchTaskOccurrencesRequestSchema = z
   .object({
     from: LocalISOSchema,
     to: LocalISOSchema,
@@ -43,8 +47,51 @@ export const searchTasksRequestSchema = z
   })
   .strict();
 
-export type SearchTasksRequest = z.infer<typeof searchTasksRequestSchema>;
+export type SearchTaskOccurrencesRequest = z.infer<typeof searchTaskOccurrencesRequestSchema>;
 
-export const searchTasksResponseSchema = z.array(taskSchema);
+export const searchTaskOccurrencesResponseSchema = z.array(taskOccurrenceSchema);
 
-export type SearchTasksResponse = z.infer<typeof searchTasksResponseSchema>;
+export type SearchTaskOccurrencesResponse = z.infer<typeof searchTaskOccurrencesResponseSchema>;
+
+export const searchTaskTemplatesRequestSchema = z
+  .object({
+    from: LocalISOSchema,
+    to: LocalISOSchema,
+    timeZone: TimeZoneSchema,
+  })
+  .strict();
+
+export type SearchTaskTemplatesRequest = z.infer<typeof searchTaskTemplatesRequestSchema>;
+
+export const searchTaskTemplatesResponseSchema = z.array(taskTemplateSchema);
+
+export type SearchTaskTemplatesResponse = z.infer<typeof searchTaskTemplatesResponseSchema>;
+
+export const taskTemplateChangesSchema = taskTemplateSchema
+  .omit({ id: true })
+  .partial()
+  .strict()
+  .refine((changes) => Object.keys(changes).length > 0, "Expected at least one change");
+
+export type TaskTemplateChangesDTO = z.infer<typeof taskTemplateChangesSchema>;
+
+export const updateTaskTemplatesRequestSchema = z
+  .object({
+    updates: z
+      .array(
+        z
+          .object({
+            id: z.uuid(),
+            changes: taskTemplateChangesSchema,
+          })
+          .strict(),
+      )
+      .min(1),
+  })
+  .strict();
+
+export type UpdateTaskTemplatesRequest = z.infer<typeof updateTaskTemplatesRequestSchema>;
+
+export const updateTaskTemplatesResponseSchema = z.array(taskTemplateSchema);
+
+export type UpdateTaskTemplatesResponse = z.infer<typeof updateTaskTemplatesResponseSchema>;

@@ -3,16 +3,26 @@ import {
   loginRequestSchema,
   loginResponseSchema,
   meResponseSchema,
-  searchTasksRequestSchema,
-  searchTasksResponseSchema,
+  searchTaskOccurrencesRequestSchema,
+  searchTaskOccurrencesResponseSchema,
+  updateTaskTemplatesRequestSchema,
+  updateTaskTemplatesResponseSchema,
 } from "@repo/dtos";
 import type { Providers } from "../types.provider.ts";
-import { taskOccurrenceToTask } from "./adapters.http.ts";
+import { taskOccurrenceToDTO, taskTemplateChangesFromDTO, taskTemplateToDTO } from "./adapters.http.ts";
 import type { HttpRoute, RouteSchemas } from "./types.http.ts";
-import { searchTaskOccurrences } from "../../operations/task.operation.ts";
-import { HTTPBadRequestError, HTTPRateLimitError, HTTPUnauthorizedError } from "../../config/errors.ts";
+import { searchTaskOccurrences } from "../../operations/searchTaskOccurrences.operation.ts";
+import {
+  HTTPBadRequestError,
+  HTTPNotFoundError,
+  HTTPRateLimitError,
+  HTTPUnauthorizedError,
+} from "../../config/errors.ts";
 import { AUTH_COOKIE_NAME, AUTH_SESSION_EXPIRATION } from "../../config/auth.ts";
 import { InvalidCredentialsError, TooManyLoginAttemptsError } from "../auth/errors.auth.ts";
+import { searchTaskTemplates } from "../../operations/searchTaskTemplates.operation.ts";
+import { updateTaskTemplates } from "../../operations/updateTaskTemplates.operation.ts";
+import { TaskTemplateNotFoundError } from "../../operations/errors.operation.ts";
 
 export function defineRoutes(providers: Providers) {
   const routesMap = {
@@ -70,12 +80,12 @@ export function defineRoutes(providers: Providers) {
         return { body: "OK" };
       },
     }),
-    "/tasks": defineRoute({
+    "/task-occurrences": defineRoute({
       method: "GET",
       isPublic: false,
       schemas: {
-        queryParams: searchTasksRequestSchema,
-        response: { 200: searchTasksResponseSchema },
+        queryParams: searchTaskOccurrencesRequestSchema,
+        response: { 200: searchTaskOccurrencesResponseSchema },
       },
       handler: async (req) => {
         const { from, to, timeZone } = req.queryParams;
@@ -84,7 +94,39 @@ export function defineRoutes(providers: Providers) {
           req.user,
           providers,
         );
-        return { body: taskOccurrences.map((to) => taskOccurrenceToTask(to)) };
+        return { body: taskOccurrences.map((to) => taskOccurrenceToDTO(to)) };
+      },
+    }),
+    "/task-templates": defineRoute({
+      method: "GET",
+      isPublic: false,
+      schemas: {},
+      handler: async (req) => {
+        const taskTemplates = await searchTaskTemplates(req.user, providers);
+        return { body: taskTemplates.map((to) => taskTemplateToDTO(to)) };
+      },
+    }),
+    "/task-templates/update": defineRoute({
+      method: "PATCH",
+      isPublic: false,
+      schemas: {
+        body: updateTaskTemplatesRequestSchema,
+        response: { 200: updateTaskTemplatesResponseSchema },
+      },
+      handler: async (req) => {
+        const updates = req.body.updates.map(({ id, changes }) => ({
+          id,
+          changes: taskTemplateChangesFromDTO(changes),
+        }));
+        try {
+          const taskTemplates = await updateTaskTemplates({ updates }, req.user, providers);
+          return { body: taskTemplates.map((taskTemplate) => taskTemplateToDTO(taskTemplate)) };
+        } catch (e) {
+          if (e instanceof TaskTemplateNotFoundError) {
+            throw new HTTPNotFoundError("Task template not found");
+          }
+          throw e;
+        }
       },
     }),
   };
