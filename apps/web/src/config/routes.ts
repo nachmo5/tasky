@@ -1,13 +1,18 @@
-import { HomePage } from "../components/pages/HomePage";
+import { TaskTemplatesEditPage } from "@/components/pages/TaskTemplatesEditPage";
 import { LoginPage } from "../components/pages/LoginPage";
+import { HomePage } from "@/components/pages/HomePage";
 
 export const routes = {
   "/": {
-    component: HomePage,
+    Component: HomePage,
     isPublic: false,
   },
   "/login": {
-    component: LoginPage,
+    Component: LoginPage,
     isPublic: true,
   },
-} as const satisfies Record<string, { component: React.FunctionComponent; isPublic: boolean }>;
+  "/task-templates": {
+    Component: TaskTemplatesEditPage,
+    isPublic: false,
+  },
+} as const satisfies Record<string, { Component: React.FunctionComponent; isPublic: boolean }>;
