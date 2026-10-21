@@ -69,9 +69,13 @@ export function createStore<TStoreBaseValue>() {
           queries: { ...actionsConfig.queries, ...nextQueries },
         });
       },
-      addMutations<TNextMutationConfig extends ConsumerMutationConfig<TStoreBaseValue, TConsumerSetterConfig>>(
-        nextMutations: TNextMutationConfig,
-      ) {
+      addMutations<
+        TNextMutationConfig extends ConsumerMutationConfig<
+          TStoreBaseValue,
+          TConsumerSetterConfig,
+          Extract<keyof TConsumerQueryConfig, string>
+        >,
+      >(nextMutations: TNextMutationConfig) {
         return createStoreBuilder<
           TConsumerGetterConfig,
           TConsumerSetterConfig,

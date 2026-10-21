@@ -72,3 +72,23 @@ export const TodoStore = createStore<TodoState>()
   .addMutations({
     addTodo: async ({ pushTodo }, title: string) => {
 ```
+
+### 3. Refreshing queries after a mutation
+
+A mutation receives `refetchQueries(queryName)` next to its setters. It re-runs every **mounted** query
+with that name, each with its own args, and resolves when they have all settled:
+
+```ts
+.addMutations({
+  addTodo: async ({ refetchQueries }, title: string) => {
+    await fetch("/api/todos", { method: "POST", body: JSON.stringify({ title }) });
+    await refetchQueries("loadTodos");
+  },
+})
+```
+
+- **Background refresh**: the query keeps its current status (no `loading` flash) and its data until the
+  new data arrives.
+- **Only mounted queries** re-run. A query nobody displays fetches fresh data when it is mounted again.
+- **Requests in flight are aborted** first, so an older response can't overwrite the refreshed data.
+- **The name is typed** from `addQueries`, so add queries before mutations in the builder chain.

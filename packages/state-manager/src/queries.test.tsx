@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   actAndFlush,
   api,
-  createDeferred,
+  buildDeferred,
   flushQueryTeardown,
   initialState,
   renderWithStore,
@@ -28,7 +28,7 @@ beforeEach(() => {
 
 describe("queries", () => {
   it("start on mount, report loading, then success with the data written by setters", async () => {
-    const response = createDeferred<Todo[]>();
+    const response = buildDeferred<Todo[]>();
     api.loadTodos.mockReturnValue(response.promise);
     renderWithStore(
       <>
@@ -72,7 +72,7 @@ describe("queries", () => {
   });
 
   it("abort when the last component using them unmounts, and ignore the late response", async () => {
-    const response = createDeferred<Todo[]>();
+    const response = buildDeferred<Todo[]>();
     api.loadTodos.mockReturnValue(response.promise);
     function App({ isListVisible }: { isListVisible: boolean }) {
       return (
@@ -85,7 +85,7 @@ describe("queries", () => {
     const { rerender } = renderWithStore(<App isListVisible />);
 
     rerender(<App isListVisible={false} />);
-    // teardown is createDeferred so a quick remount can reuse the request
+    // teardown is buildDeferred so a quick remount can reuse the request
     expect(getCallSignal(0).aborted).toBe(false);
     await flushQueryTeardown();
     expect(getCallSignal(0).aborted).toBe(true);
@@ -96,7 +96,7 @@ describe("queries", () => {
   });
 
   it("stay alive while another component still uses them", async () => {
-    api.loadTodos.mockReturnValue(createDeferred<Todo[]>().promise);
+    api.loadTodos.mockReturnValue(buildDeferred<Todo[]>().promise);
     function App({ isSecondVisible }: { isSecondVisible: boolean }) {
       return (
         <>
@@ -114,7 +114,7 @@ describe("queries", () => {
   });
 
   it("abort the previous request and start a new one when args change", async () => {
-    const firstResponse = createDeferred<Todo[]>();
+    const firstResponse = buildDeferred<Todo[]>();
     api.loadTodos
       .mockReturnValueOnce(firstResponse.promise)
       .mockResolvedValueOnce([{ title: "u2 todo", isDone: false }]);

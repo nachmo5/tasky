@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StoreLoader } from "./boundary";
-import { actAndFlush, api, createDeferred, renderWithStore, TodoStore, type Todo } from "./testing/fixtures";
+import { actAndFlush, api, buildDeferred, renderWithStore, TodoStore, type Todo } from "./testing/fixtures";
 
 beforeEach(() => {
   api.loadTodos.mockReset();
@@ -10,7 +10,7 @@ beforeEach(() => {
 
 describe("StoreConsumer", () => {
   it("passes getters, setters, query statuses and mutations to its children", () => {
-    api.loadTodos.mockReturnValue(createDeferred<Todo[]>().promise);
+    api.loadTodos.mockReturnValue(buildDeferred<Todo[]>().promise);
     renderWithStore(
       <TodoStore.StoreConsumer
         getters={["remaining"]}
@@ -27,7 +27,7 @@ describe("StoreConsumer", () => {
   });
 
   it("shows the loader instead of its children while a query is loading", async () => {
-    const response = createDeferred<Todo[]>();
+    const response = buildDeferred<Todo[]>();
     api.loadTodos.mockReturnValue(response.promise);
     const renderChildren = vi.fn(({ todos }: { todos: Todo[] }) => <p>{`${todos.length} todos`}</p>);
     renderWithStore(
@@ -50,7 +50,7 @@ describe("StoreConsumer", () => {
   });
 
   it("keeps showing its children while a mutation is running", () => {
-    api.saveTodo.mockReturnValue(createDeferred<void>().promise);
+    api.saveTodo.mockReturnValue(buildDeferred<void>().promise);
     renderWithStore(
       <TodoStore.StoreConsumer mutations={["addTodo"]} loader={<p>loading…</p>}>
         {({ addTodo }) => <button onClick={() => void addTodo("new")}>{addTodo.status}</button>}

@@ -15,8 +15,10 @@ import { useBaseGetters } from "./useGetters";
 // It lets several components using the same query share one request (deduplication), and
 // counts how many components use each query so it is only torn down when the last one leaves.
 type QueryEntry = {
+  name: string;
   refCount: number;
   controller: AbortController;
+  fetch: (signal: AbortSignal) => Promise<StoreRequest>;
   gcTimer?: ReturnType<typeof setTimeout>;
 };
 const storeToQueryRegistry = new WeakMap<Store<any>, Map<string, QueryEntry>>();
@@ -99,18 +101,17 @@ export function makeUseConsumerQueries<
           clearTimeout(existing.gcTimer);
           return;
         }
-        const entry: QueryEntry = { refCount: 1, controller: new AbortController() };
+        const entry: QueryEntry = {
+          name: query.name as string,
+          refCount: 1,
+          controller: new AbortController(),
+          fetch: query.fn,
+        };
         registry.set(query.id, entry);
         updateStore(store, (storeValue) => {
           storeValue.idToRequest[query.id] = { status: "loading" };
         });
-        void query.fn(entry.controller.signal).then((storeRequest) => {
-          // Ignore results of queries that were torn down meanwhile (race fix).
-          if (entry.controller.signal.aborted) return;
-          updateStore(store, (storeValue) => {
-            storeValue.idToRequest[query.id] = storeRequest;
-          });
-        });
+        void runQuery(store, query.id, entry);
       });
 
       return () => {
@@ -156,4 +157,25 @@ export function makeUseConsumerQueries<
       {},
     ) as ConsumerQueryResult<TStoreBaseValue, TConsumerSetterConfig, TConsumerQueryConfig, TConsumerQueryProps>;
   };
+}
+
+export function refetchQueries(store: Store<any>, queryName: string) {
+  const refetches = [...getQueryRegistry(store)]
+    .filter(([, entry]) => entry.name === queryName && entry.refCount > 0)
+    .map(([queryId, entry]) => {
+      entry.controller.abort();
+      entry.controller = new AbortController();
+      return runQuery(store, queryId, entry);
+    });
+  return Promise.all(refetches).then(() => undefined);
+}
+
+function runQuery(store: Store<any>, queryId: string, entry: QueryEntry) {
+  const { signal } = entry.controller;
+  return entry.fetch(signal).then((storeRequest) => {
+    if (signal.aborted) return;
+    updateStore(store, (storeValue: StoreValue<unknown>) => {
+      storeValue.idToRequest[queryId] = storeRequest;
+    });
+  });
 }

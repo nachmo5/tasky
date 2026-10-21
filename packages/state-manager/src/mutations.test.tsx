@@ -1,6 +1,6 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { actAndFlush, api, createDeferred, renderWithStore, TodoStore, TodosProbe } from "./testing/fixtures";
+import { actAndFlush, api, buildDeferred, renderWithStore, TodoStore, TodosProbe } from "./testing/fixtures";
 
 function AddTodo({ onError = () => {} }: { onError?: (error: unknown) => void }) {
   const { addTodo } = TodoStore.useMutations(["addTodo"]);
@@ -24,7 +24,7 @@ describe("mutations", () => {
   });
 
   it("report loading then success, and apply their setters", async () => {
-    const response = createDeferred<void>();
+    const response = buildDeferred<void>();
     api.saveTodo.mockReturnValue(response.promise);
     renderWithStore(
       <>
@@ -63,8 +63,8 @@ describe("mutations", () => {
   });
 
   it("keep the status of the latest call when an older call settles later", async () => {
-    const firstCall = createDeferred<void>();
-    const secondCall = createDeferred<void>();
+    const firstCall = buildDeferred<void>();
+    const secondCall = buildDeferred<void>();
     api.saveTodo.mockReturnValueOnce(firstCall.promise).mockReturnValueOnce(secondCall.promise);
     renderWithStore(<AddTodo />);
 
@@ -77,7 +77,7 @@ describe("mutations", () => {
   });
 
   it("still apply their setters when the component unmounts before they finish", async () => {
-    const response = createDeferred<void>();
+    const response = buildDeferred<void>();
     api.saveTodo.mockReturnValue(response.promise);
     function App({ isFormVisible }: { isFormVisible: boolean }) {
       return (

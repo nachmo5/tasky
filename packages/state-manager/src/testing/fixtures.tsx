@@ -42,6 +42,10 @@ export const TodoStore = createStore<TodoState>()
       await api.saveTodo(title);
       pushTodo(title);
     },
+    addTodoAndRefetch: async ({ refetchQueries }, title: string) => {
+      await api.saveTodo(title);
+      await refetchQueries("loadTodos");
+    },
   });
 
 export const initialState: TodoState = {
@@ -66,7 +70,7 @@ export function TodosProbe() {
   return <p data-testid="todos">{todos.map((todo) => todo.title).join(",")}</p>;
 }
 
-export function createDeferred<T>() {
+export function buildDeferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: unknown) => void;
   const promise = new Promise<T>((res, rej) => {

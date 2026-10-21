@@ -39,7 +39,11 @@ export type ConsumerQueryConfig<
 export type ConsumerMutationConfig<
   TStoreBaseValue,
   TConsumerSetterConfig extends ConsumerSetterConfig<TStoreBaseValue>,
-> = Record<string, ConsumerRequest<TStoreBaseValue, TConsumerSetterConfig>>;
+  TQueryName extends string = string,
+> = Record<
+  string,
+  ConsumerRequest<TStoreBaseValue, TConsumerSetterConfig, { refetchQueries: (queryName: TQueryName) => Promise<void> }>
+>;
 
 // ==========================================================================
 // =============================== PROPS ====================================

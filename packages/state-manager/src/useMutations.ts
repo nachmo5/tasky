@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, type Context } from "react";
+import { useContext, useEffect, useId, useMemo, useRef, type Context } from "react";
 import { type Store, updateStore } from "./common";
 import {
   type ConsumerMutationConfig,
@@ -11,6 +11,7 @@ import {
   type StoreValue,
 } from "./types";
 import { useBaseGetters } from "./useGetters";
+import { refetchQueries } from "./useQueries";
 
 export function makeUseConsumerMutations<
   TStoreBaseValue,
@@ -30,6 +31,7 @@ export function makeUseConsumerMutations<
   >(mutationProps: TConsumerMutationProp) {
     const consumerSetters = useConsumerSetters();
     const store = useContext(context);
+    const componentId = useId();
 
     // Tracks whether the component is mounted, so a mutation finishing after unmount does
     // not write its status back into the store (its entry was already cleaned up).
@@ -42,7 +44,7 @@ export function makeUseConsumerMutations<
     }[] = useMemo(
       () =>
         mutationProps.map((mutationName) => {
-          const mutationId = (mutationName as string) + "_" + crypto.randomUUID();
+          const mutationId = `${mutationName}_${componentId}`;
           const mutationConfigFn = mutationConfig[mutationName]!;
           // Increments on each call; only the latest call may write the status, so an older
           // call finishing late cannot overwrite the status of a newer one.
@@ -57,7 +59,14 @@ export function makeUseConsumerMutations<
             const callId = ++latestCallId;
             setRequest(callId, { status: "loading", error: undefined });
             try {
-              const result = await mutationConfigFn({ get: () => store.getState().base, ...consumerSetters }, ...args);
+              const result = await mutationConfigFn(
+                {
+                  get: () => store.getState().base,
+                  ...consumerSetters,
+                  refetchQueries: (queryName: string) => refetchQueries(store, queryName),
+                },
+                ...args,
+              );
               setRequest(callId, { status: "success", error: undefined });
               return result;
             } catch (e) {
@@ -76,7 +85,7 @@ export function makeUseConsumerMutations<
         }),
       // Rebuilt when the list of mutation names changes, not only when the store changes.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [store, mutationProps.join(",")],
+      [store, componentId, mutationProps.join(",")],
     );
 
     useEffect(() => {
