@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  VITE_API_URL: z.url(),
+  VITE_API_URL: z.union([z.url(), z.string().startsWith("/")]),
 });
 
 type Env = {

@@ -1,21 +1,13 @@
 import { routes } from "@/config/routes";
 import { useGlobalQueries, useGlobalGetters, GlobalProvider, globalStoreInitialValue } from "@/config/store";
 import { objectEntries } from "@repo/lib";
-import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { buttonVariants } from "@/lib/css.lib";
 
 export function App() {
   return (
     <BrowserRouter>
       <GlobalProvider initialValue={globalStoreInitialValue}>
-        <div className="flex gap-4 p-4">
-          {objectEntries(routes).map(([path]) => (
-            <Link to={path} key={path} className={buttonVariants({ variant: "default" })}>
-              {path.slice(1) || "Home"}
-            </Link>
-          ))}
-        </div>
         <Router />
       </GlobalProvider>
     </BrowserRouter>

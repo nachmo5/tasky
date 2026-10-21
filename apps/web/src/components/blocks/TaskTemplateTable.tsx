@@ -9,14 +9,16 @@ import { DataTable, type DataTableFeatures } from "./DataTable";
 import { EditableTableCell, type EditableColumnDefinition } from "./EditableTableCell";
 import { camelCaseToSentence } from "@/lib/string.lib";
 import { columnSizeByType } from "@/config/table";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "../base/button";
 
 const columnDefinitions: EditableColumnDefinition<TaskTemplateDTO>[] = [
   { name: "title", type: "text" },
   { name: "priority", type: "select", options: taskPriorityEnumSchema.options },
   { name: "estimatedMn", type: "number" },
   { name: "firstOccurrenceStartDate", type: "date" },
-  { name: "nextOccurrenceEvery", type: "interval" },
   { name: "overdueAfter", type: "interval" },
+  { name: "nextOccurrenceEvery", type: "interval" },
   { name: "description", type: "text" },
 ];
 
@@ -25,8 +27,14 @@ const columnHelper = createColumnHelper<DataTableFeatures, TaskTemplateDTO>();
 const columns = columnHelper.columns(
   columnDefinitions.map((definition) =>
     columnHelper.accessor(definition.name, {
-      // headers wrap so a long title cannot widen a fixed-width column
-      header: () => <span className="whitespace-normal">{camelCaseToSentence(definition.name)}</span>,
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            <span className="whitespace-normal">{camelCaseToSentence(definition.name)}</span>
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
       cell: ({ row, table }) => (
         <EditableTableCell
           definition={definition}

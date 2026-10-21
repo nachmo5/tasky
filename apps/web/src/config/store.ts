@@ -1,5 +1,8 @@
 import { sendRequest } from "@/lib/api.lib";
+
 import {
+  type CreateTaskTemplateRequest,
+  type CreateTaskTemplateResponse,
   type LoginRequest,
   type LoginResponse,
   type MeResponse,
@@ -18,12 +21,14 @@ type GlobalStore = {
   user: UserDTO | null;
   taskOccurrences: TaskOccurrenceDTO[];
   taskTemplates: TaskTemplateDTO[];
+  isAddModalOpened: boolean;
 };
 
 export const globalStoreInitialValue: GlobalStore = {
   user: null,
   taskOccurrences: [],
   taskTemplates: [],
+  isAddModalOpened: false,
 };
 
 const globalStore = createStore<GlobalStore>()
@@ -31,6 +36,7 @@ const globalStore = createStore<GlobalStore>()
     taskOccurrences: (state) => state.taskOccurrences,
     taskTemplates: (state) => state.taskTemplates,
     user: (state) => state.user,
+    isAddModalOpened: (state) => state.isAddModalOpened,
   })
   .addSetters({
     setTaskOccurrences: (state, taskOccurrences: TaskOccurrenceDTO[]) => (state.taskOccurrences = taskOccurrences),
@@ -39,7 +45,11 @@ const globalStore = createStore<GlobalStore>()
       (state.taskTemplates = state.taskTemplates.map(
         (taskTemplate) => updatedTaskTemplates.find((updated) => updated.id === taskTemplate.id) ?? taskTemplate,
       )),
+    addTaskTemplate: (state, taskTemplate: TaskTemplateDTO) => {
+      state.taskTemplates.push(taskTemplate);
+    },
     setUser: (state, user: GlobalStore["user"]) => (state.user = user),
+    setIsAddModalOpened: (state, isAddModalOpened: boolean) => (state.isAddModalOpened = isAddModalOpened),
   })
   .addQueries({
     searchTaskOccurrences: async (state, data: SearchTaskOccurrencesRequest) => {
@@ -73,6 +83,12 @@ const globalStore = createStore<GlobalStore>()
       state.replaceTaskTemplates(
         await sendRequest<UpdateTaskTemplatesResponse>("/task-templates/update", { body: data, method: "PATCH" }),
       );
+    },
+    createTaskTemplate: async (state, data: CreateTaskTemplateRequest) => {
+      state.addTaskTemplate(
+        await sendRequest<CreateTaskTemplateResponse>("/task-templates/create", { body: data, method: "POST" }),
+      );
+      await state.refetchQueries("searchTaskOccurrences");
     },
   });
 

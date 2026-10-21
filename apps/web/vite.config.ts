@@ -7,8 +7,15 @@ import { fileURLToPath } from "url";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    host: "0.0.0.0",
     port: 4000, // Replace with your desired port number
     strictPort: true, // Optional: exits if the port is already in use instead of auto-incrementing
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   resolve: {
     alias: {

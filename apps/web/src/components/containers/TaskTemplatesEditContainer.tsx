@@ -8,35 +8,38 @@ export function TaskTemplatesEditContainer() {
   const [taskTemplateChanges, setTaskTemplateChanges] = useState<Record<string, TaskTemplateChangesDTO>>({});
 
   return (
-    <div className="p-8">
-      <GlobalConsumer getters={["taskTemplates"]} queries={["searchTaskTemplates"]} mutations={["updateTaskTemplates"]}>
-        {({ taskTemplates, updateTaskTemplates }) => (
-          <div className="flex flex-col gap-4">
-            <TaskTemplateHeader
-              nbOfChanges={Object.keys(taskTemplateChanges).length}
-              isSaving={updateTaskTemplates.status === "loading"}
-              saveError={updateTaskTemplates.status === "error" ? updateTaskTemplates.error?.message : undefined}
-              onSave={() =>
-                void updateTaskTemplates({
-                  updates: Object.entries(taskTemplateChanges).map(([id, changes]) => ({ id, changes })),
-                }).then(() => setTaskTemplateChanges({}))
-              }
-              onDiscard={() => setTaskTemplateChanges({})}
-            />
-            <TaskTemplateTable
-              taskTemplates={taskTemplates.map((taskTemplate) => ({
-                ...taskTemplate,
-                ...taskTemplateChanges[taskTemplate.id],
-              }))}
-              changesById={taskTemplateChanges}
-              onChange={(taskTemplateId, changes) =>
-                setTaskTemplateChanges((current) => ({
-                  ...current,
-                  [taskTemplateId]: { ...current[taskTemplateId], ...changes },
-                }))
-              }
-            />
-          </div>
+    <div className="flex flex-col gap-4 p-8">
+      <GlobalConsumer mutations={["updateTaskTemplates"]}>
+        {({ updateTaskTemplates }) => (
+          <TaskTemplateHeader
+            nbOfChanges={Object.keys(taskTemplateChanges).length}
+            isSaving={updateTaskTemplates.status === "loading"}
+            saveError={updateTaskTemplates.status === "error" ? updateTaskTemplates.error?.message : undefined}
+            onSave={() =>
+              void updateTaskTemplates({
+                updates: Object.entries(taskTemplateChanges).map(([id, changes]) => ({ id, changes })),
+              }).then(() => setTaskTemplateChanges({}))
+            }
+            onDiscard={() => setTaskTemplateChanges({})}
+          />
+        )}
+      </GlobalConsumer>
+
+      <GlobalConsumer getters={["taskTemplates"]} queries={["searchTaskTemplates"]}>
+        {({ taskTemplates }) => (
+          <TaskTemplateTable
+            taskTemplates={taskTemplates.map((taskTemplate) => ({
+              ...taskTemplate,
+              ...taskTemplateChanges[taskTemplate.id],
+            }))}
+            changesById={taskTemplateChanges}
+            onChange={(taskTemplateId, changes) =>
+              setTaskTemplateChanges((current) => ({
+                ...current,
+                [taskTemplateId]: { ...current[taskTemplateId], ...changes },
+              }))
+            }
+          />
         )}
       </GlobalConsumer>
     </div>

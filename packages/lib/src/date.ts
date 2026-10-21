@@ -45,3 +45,11 @@ function toRealDate(date: LocalISO, timeZone: string) {
 export function toLocalISOString(v: string): LocalISO {
   return Temporal.PlainDateTime.from(v).round({ smallestUnit: "second", roundingMode: "trunc" }).toString() as LocalISO;
 }
+
+export function getPreviousDate(days: number, time?: string): LocalISO {
+  if (time && time.split(":").length !== 3) {
+    throw new Error("Invalid time given to getPreviousDate");
+  }
+  const result = Temporal.Now.plainDateISO().subtract({ days });
+  return `${result.toString()}T${time ?? "00:00:00"}` as LocalISO;
+}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "../base/table";
 import {
   // columnFilteringFeature,
@@ -5,18 +6,19 @@ import {
   columnVisibilityFeature,
   // createFilteredRowModel,
   // createPaginatedRowModel,
-  // createSortedRowModel,
+  createSortedRowModel,
   // filterFn_includesString,
   // rowPaginationFeature,
   // rowSelectionFeature,
-  // rowSortingFeature,
-  // sortFn_alphanumeric,
-  // sortFn_text,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
   useTable,
   type ColumnDef,
   type Row,
   type RowData,
+  type SortingState,
   type TableFeatures,
   type TableMeta,
 } from "@tanstack/react-table";
@@ -34,12 +36,12 @@ const features = tableFeatures({
   columnVisibilityFeature,
   // rowPaginationFeature,
   // rowSelectionFeature,
-  // rowSortingFeature,
   // filteredRowModel: createFilteredRowModel(),
-  // paginatedRowModel: createPaginatedRowModel(),
-  // sortedRowModel: createSortedRowModel(),
   // filterFns: { includesString: filterFn_includesString },
-  // sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+  // paginatedRowModel: createPaginatedRowModel(),
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
 });
 
 export type DataTableFeatures = typeof features;
@@ -51,11 +53,16 @@ interface DataTableProps<TData extends RowData> {
 }
 
 export function DataTable<TData extends RowData>({ columns, data, meta }: DataTableProps<TData>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useTable({
     features,
     data,
     columns,
     meta,
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
   });
 
   return (

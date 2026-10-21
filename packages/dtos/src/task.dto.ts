@@ -95,3 +95,14 @@ export type UpdateTaskTemplatesRequest = z.infer<typeof updateTaskTemplatesReque
 export const updateTaskTemplatesResponseSchema = z.array(taskTemplateSchema);
 
 export type UpdateTaskTemplatesResponse = z.infer<typeof updateTaskTemplatesResponseSchema>;
+
+export const createTaskTemplateRequestSchema = taskTemplateSchema
+  .omit({ id: true })
+  .extend({ title: z.string().trim().min(1) })
+  .strict();
+
+export type CreateTaskTemplateRequest = z.infer<typeof createTaskTemplateRequestSchema>;
+
+export const createTaskTemplateResponseSchema = taskTemplateSchema;
+
+export type CreateTaskTemplateResponse = z.infer<typeof createTaskTemplateResponseSchema>;
