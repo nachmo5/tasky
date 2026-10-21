@@ -31,10 +31,7 @@ export class CacheProvider<TCacheMap extends Record<string, { parts: string[]; v
     parts: TCacheMap[TPrefix]["parts"],
     value: TCacheMap[TPrefix]["value"],
   ): Promise<void> {
-    const expiresAt =
-      this.cachePrefixToTTLSeconds[prefix] > 0
-        ? new Date().getTime() + this.cachePrefixToTTLSeconds[prefix] * 1000
-        : null;
+    const expiresAt = this.computeExpiresAt(prefix, Date.now());
     this.cache[generateCacheKey(prefix as string, parts)] = { value: JSON.stringify(value), expiresAt };
     return Promise.resolve();
   }
@@ -59,15 +56,19 @@ export class CacheProvider<TCacheMap extends Record<string, { parts: string[]; v
     ttlMs?: number,
   ): Promise<{ count: number; ttlMs: number }> {
     const key = generateCacheKey(prefix as string, parts);
+    const now = Date.now();
     const entry = this.cache[key];
-    const value = entry ? safeParseJson(entry?.value) : 0;
-    const nextValue = (value ? Number(value) : 0) + 1;
-    const expiresAt = ttlMs != null ? Date.now() + ttlMs : (entry?.expiresAt ?? null);
-    this.cache[key] = {
-      value: JSON.stringify(nextValue),
-      expiresAt,
-    };
-    return Promise.resolve({ count: nextValue, ttlMs: expiresAt === null ? -1 : expiresAt - Date.now() });
+    const isEntryActive = entry !== undefined && (entry.expiresAt === null || entry.expiresAt > now);
+    const count = (isEntryActive ? Number(safeParseJson(entry.value)) : 0) + 1;
+    const expiresAt = isEntryActive ? entry.expiresAt : this.computeExpiresAt(prefix, now, ttlMs);
+    this.cache[key] = { value: JSON.stringify(count), expiresAt };
+    return Promise.resolve({ count, ttlMs: expiresAt === null ? -1 : expiresAt - now });
+  }
+
+  private computeExpiresAt(prefix: keyof TCacheMap, now: number, ttlMs?: number): number | null {
+    if (ttlMs !== undefined) return now + ttlMs;
+    const ttlS = this.cachePrefixToTTLSeconds[prefix];
+    return ttlS > 0 ? now + ttlS * 1000 : null;
   }
 
   close(): Promise<void> {

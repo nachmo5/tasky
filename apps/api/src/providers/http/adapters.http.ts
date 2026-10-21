@@ -1,5 +1,10 @@
-import type { TaskOccurrenceDTO, TaskTemplateChangesDTO, TaskTemplateDTO } from "@repo/dtos";
-import type { TaskOccurrence, TaskTemplate, TaskTemplateChanges } from "../../operations/types.operation.ts";
+import type { CreateTaskTemplateRequest, TaskOccurrenceDTO, TaskTemplateChangesDTO, TaskTemplateDTO } from "@repo/dtos";
+import type {
+  NewTaskTemplate,
+  TaskOccurrence,
+  TaskTemplate,
+  TaskTemplateChanges,
+} from "../../operations/types.operation.ts";
 
 export function taskOccurrenceToDTO(taskOccurrence: TaskOccurrence): TaskOccurrenceDTO {
   return {
@@ -32,6 +37,15 @@ export function taskTemplateChangesFromDTO(changes: TaskTemplateChangesDTO): Tas
     ...sameNameChanges,
     ...(priority ? { priority: mapTaskPriorityToNumber(priority) } : {}),
     ...(firstOccurrenceStartDate ? { firstOccurrenceLocalStartDate: firstOccurrenceStartDate } : {}),
+  };
+}
+
+export function mapToNewTaskTemplate(taskTemplate: CreateTaskTemplateRequest): NewTaskTemplate {
+  const { priority, firstOccurrenceStartDate, ...sameNameFields } = taskTemplate;
+  return {
+    ...sameNameFields,
+    priority: mapTaskPriorityToNumber(priority),
+    firstOccurrenceLocalStartDate: firstOccurrenceStartDate,
   };
 }
 

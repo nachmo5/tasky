@@ -28,6 +28,8 @@ export type TaskTemplateChanges = Partial<
   >
 >;
 
+export type NewTaskTemplate = Omit<TaskTemplate, "id" | "userId" | "completedOccurrences">;
+
 export type TaskTemplateUpdate = {
   id: string;
   changes: TaskTemplateChanges;

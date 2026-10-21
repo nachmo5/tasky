@@ -235,11 +235,27 @@ Rules:
   block.
 - Blocks are pure: everything comes in through props, events go out through callbacks. They can be
   rendered in isolation (Storybook, tests) without a store.
+- **Blocks contain no business logic.** They render the data they receive, in the order they receive it.
+  Filtering, sorting, grouping or deriving values from domain data happens before the data reaches a
+  block (see the table below).
 - Containers contain no markup of their own beyond what is needed to connect a block (no styling).
 - Pages are the only components referenced from `config/routes.ts`.
 - `base/` is owned by the shadcn CLI: file names are kebab-case (`button.tsx`); add components with
   `npx shadcn add <name>` from `apps/web`. Every other layer uses PascalCase file names that match the
   exported component.
+
+### What goes where
+
+| Kind of code          | Lives in           | Examples                                                                                                                                 |
+| --------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain rules          | backend operations | computing occurrences and their status (`overdue` = due date passed, not completed)                                                      |
+| Derived frontend data | store getters      | filtering, sorting and grouping occurrences by status; counts                                                                            |
+| Connecting data to UI | containers         | choosing getters, queries and mutations; mapping block events to mutations; page-local state such as unsaved drafts                      |
+| Presentation          | blocks             | layout, labels and section titles, formatting a value for display (dates, durations), UI-only state (an open menu, the text being typed) |
+| Atoms                 | `base`             | styling and behavior of a single control                                                                                                 |
+
+Quick test for a block: if the logic would still be needed by a different UI showing the same data (a
+mobile app, a CSV export), it doesn't belong in the block.
 
 ### Other folders
 
@@ -273,7 +289,20 @@ The global store is declared once in `config/store.ts`:
 
   Mutations get no signal on purpose: a save or a login should finish even if the component unmounts.
 
-- **mutations**: async writes triggered by the user, with `status`/`error` on the returned function
+- **mutations**: async writes triggered by the user, with `status`/`error` on the returned function.
+  When a write changes data that a query shows, call `state.refetchQueries(queryName)` instead of
+  re-fetching by hand: every **mounted** query with that name re-runs with its own args, in the background
+  (its status stays `success`, no loader flash). The name is typed from `addQueries`.
+
+  ```ts
+  createTaskTemplate: async (state, data: CreateTaskTemplateRequest) => {
+    state.addTaskTemplate(await sendRequest(...));
+    await state.refetchQueries("searchTaskOccurrences");
+  },
+  ```
+
+  `await` it to keep the mutation `loading` until the list is up to date; leave out `await` to finish
+  as soon as the write succeeds.
 
 Containers request what they need by name:
 

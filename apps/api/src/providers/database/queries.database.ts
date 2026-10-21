@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { dbTaskTemplates } from "@repo/database";
-import type { TaskTemplate, TaskTemplateUpdate } from "../../operations/types.operation.ts";
+import type { NewTaskTemplate, TaskTemplate, TaskTemplateUpdate } from "../../operations/types.operation.ts";
 import { mapToTaskTemplate } from "./adapters.database.ts";
 import type { DatabaseProvider } from "./database.provider.ts";
 
@@ -24,6 +24,16 @@ export function defineQueries(db: DatabaseProvider["client"]) {
       return taskTemplateRows.map(mapToTaskTemplate);
     },
     selectTaskTemplatesByIds,
+    insertTaskTemplate: async (userId: string, newTaskTemplate: NewTaskTemplate): Promise<TaskTemplate> => {
+      const [taskTemplateRow] = await db
+        .insert(dbTaskTemplates)
+        .values({ ...newTaskTemplate, userId })
+        .returning();
+      if (!taskTemplateRow) {
+        throw new Error("Task template insert returned no row");
+      }
+      return mapToTaskTemplate({ ...taskTemplateRow, dbCompletedOccurrences: [] });
+    },
     updateTaskTemplates: async (userId: string, updates: TaskTemplateUpdate[]): Promise<TaskTemplate[]> => {
       await db.transaction(async (tx) => {
         for (const { id, changes } of updates) {

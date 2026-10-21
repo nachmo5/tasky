@@ -1,5 +1,7 @@
 import { objectEntries } from "@repo/lib";
 import {
+  createTaskTemplateRequestSchema,
+  createTaskTemplateResponseSchema,
   loginRequestSchema,
   loginResponseSchema,
   meResponseSchema,
@@ -9,7 +11,12 @@ import {
   updateTaskTemplatesResponseSchema,
 } from "@repo/dtos";
 import type { Providers } from "../types.provider.ts";
-import { taskOccurrenceToDTO, taskTemplateChangesFromDTO, taskTemplateToDTO } from "./adapters.http.ts";
+import {
+  mapToNewTaskTemplate,
+  taskOccurrenceToDTO,
+  taskTemplateChangesFromDTO,
+  taskTemplateToDTO,
+} from "./adapters.http.ts";
 import type { HttpRoute, RouteSchemas } from "./types.http.ts";
 import { searchTaskOccurrences } from "../../operations/searchTaskOccurrences.operation.ts";
 import {
@@ -22,6 +29,7 @@ import { AUTH_COOKIE_NAME, AUTH_SESSION_EXPIRATION } from "../../config/auth.ts"
 import { InvalidCredentialsError, TooManyLoginAttemptsError } from "../auth/errors.auth.ts";
 import { searchTaskTemplates } from "../../operations/searchTaskTemplates.operation.ts";
 import { updateTaskTemplates } from "../../operations/updateTaskTemplates.operation.ts";
+import { createTaskTemplate } from "../../operations/createTaskTemplate.operation.ts";
 import { TaskTemplateNotFoundError } from "../../operations/errors.operation.ts";
 
 export function defineRoutes(providers: Providers) {
@@ -104,6 +112,22 @@ export function defineRoutes(providers: Providers) {
       handler: async (req) => {
         const taskTemplates = await searchTaskTemplates(req.user, providers);
         return { body: taskTemplates.map((to) => taskTemplateToDTO(to)) };
+      },
+    }),
+    "/task-templates/create": defineRoute({
+      method: "POST",
+      isPublic: false,
+      schemas: {
+        body: createTaskTemplateRequestSchema,
+        response: { 201: createTaskTemplateResponseSchema },
+      },
+      handler: async (req) => {
+        const taskTemplate = await createTaskTemplate(
+          { taskTemplate: mapToNewTaskTemplate(req.body) },
+          req.user,
+          providers,
+        );
+        return { status: 201, body: taskTemplateToDTO(taskTemplate) };
       },
     }),
     "/task-templates/update": defineRoute({

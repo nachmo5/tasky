@@ -39,12 +39,22 @@ The name says what the function does: `get`, `select`, `search`, `update`, `crea
   computeNbOfOccurrencesBefore,
   defineRoutes,
   sendRequest,
-  createDeferred,
+  buildDeferred,
   getCallSignal);
 
 // ❌
 (taskOccurrences, templatesByIds, taskTemplate, nbOfOccurrences, routes, request, deferred, signalOfCall);
 ```
+
+- **`create` is for persistence.** Use `create…` only when something new gets stored: a DB insert, a POST
+  request, the operation or mutation behind it (`createTaskTemplate`, `insertTaskTemplate`,
+  `createTaskTemplateRequestSchema`). For in-memory values, use:
+  - `build…` to assemble an object or structure from parts (`buildNewTaskTemplateRequest`,
+    `buildDeferred`),
+  - `generate…` to derive values by applying rules, often several at once (`generateTaskOccurrences`).
+
+  Names from external APIs keep their own verb (`createRoot`, `createContext`, TanStack's
+  `createSortedRowModel`).
 
 - **Converters** are `map<A>To<B>` (`mapToTaskTemplate`, `mapTaskPriorityToNumber`), not `<a>To<b>`.
 - **Event props and callbacks** are named after the event: `on<Event>` (`onChange`, `onSave`,
