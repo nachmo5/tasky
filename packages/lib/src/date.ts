@@ -4,6 +4,10 @@ export const INTERVAL_UNITS = ["minutes", "days", "months", "years"] as const;
 export type TimeInterval = { count: number; unit: (typeof INTERVAL_UNITS)[number] };
 export type LocalISO = `${number}-${number}-${number}T${number}:${number}:${number}`;
 
+export const MINUTE_TO_MS = 60 * 1000;
+export const HOUR_TO_MS = 60 * MINUTE_TO_MS;
+export const DAY_TO_MS = 24 * HOUR_TO_MS;
+
 export function addInterval(localDate: LocalISO, interval: TimeInterval, timeZone: string): LocalISO {
   return toRealDate(localDate, timeZone)
     .add({ [interval.unit]: interval.count })
