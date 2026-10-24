@@ -35,7 +35,7 @@ export type TaskTemplateUpdate = {
   changes: TaskTemplateChanges;
 };
 
-type CompletedOccurrence = {
+export type CompletedOccurrence = {
   localStartDate: LocalISO;
   completedAt: Date;
   isCancelled: boolean;

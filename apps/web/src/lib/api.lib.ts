@@ -9,9 +9,11 @@ export async function sendRequest<TResponse>(
     method?: "POST" | "GET" | "DELETE" | "PUT" | "PATCH";
     signal?: AbortSignal;
   },
-) {
+): Promise<TResponse> {
   const { body, queryString, responseType = "json", method = "GET", signal } = options ?? {};
+
   const hasBody = body !== undefined;
+
   const response = await fetch(buildUrl(path, queryString), {
     method,
     signal,
@@ -23,10 +25,30 @@ export async function sendRequest<TResponse>(
   });
 
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
   }
 
-  return (responseType === "json" ? response.json() : response.text()) as Promise<TResponse>;
+  // Handle endpoints that return no content.
+  if (response.status === 204 || response.status === 205) {
+    return undefined as TResponse;
+  }
+
+  if (responseType === "text") {
+    return (await response.text()) as TResponse;
+  }
+
+  const text = await response.text();
+
+  // Handle an empty response body.
+  if (!text.trim()) {
+    return undefined as TResponse;
+  }
+
+  try {
+    return JSON.parse(text) as TResponse;
+  } catch {
+    throw new Error(`Expected a JSON response from ${path}, but received invalid JSON.`);
+  }
 }
 
 // Encodes every key and value, e.g. { timeZone: "Etc/GMT+5" } → "?timeZone=Etc%2FGMT%2B5"

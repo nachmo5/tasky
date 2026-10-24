@@ -3,6 +3,7 @@ import { useGlobalQueries, useGlobalGetters, GlobalProvider, globalStoreInitialV
 import { objectEntries } from "@repo/lib";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { Toaster } from "./base/toast";
 
 export function App() {
   return (
@@ -10,6 +11,7 @@ export function App() {
       <GlobalProvider initialValue={globalStoreInitialValue}>
         <Router />
       </GlobalProvider>
+      <Toaster />
     </BrowserRouter>
   );
 }

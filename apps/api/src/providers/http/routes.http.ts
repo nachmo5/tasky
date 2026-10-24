@@ -1,7 +1,11 @@
-import { objectEntries } from "@repo/lib";
+import { objectEntries, toLocalISOString } from "@repo/lib";
 import {
+  completeTaskRequestSchema,
+  completeTaskResponseSchema,
   createTaskTemplateRequestSchema,
   createTaskTemplateResponseSchema,
+  deleteTaskTemplateRequestSchema,
+  deleteTaskTemplateResponseSchema,
   loginRequestSchema,
   loginResponseSchema,
   meResponseSchema,
@@ -31,6 +35,8 @@ import { searchTaskTemplates } from "../../operations/searchTaskTemplates.operat
 import { updateTaskTemplates } from "../../operations/updateTaskTemplates.operation.ts";
 import { createTaskTemplate } from "../../operations/createTaskTemplate.operation.ts";
 import { TaskTemplateNotFoundError } from "../../operations/errors.operation.ts";
+import { deleteTaskTemplate } from "../../operations/deleteTaskTemplate.operation.ts";
+import { completeTask } from "../../operations/completeTask.operation.ts";
 
 export function defineRoutes(providers: Providers) {
   const routesMap = {
@@ -151,6 +157,41 @@ export function defineRoutes(providers: Providers) {
           }
           throw e;
         }
+      },
+    }),
+    "/task-templates/delete": defineRoute({
+      method: "DELETE",
+      isPublic: false,
+      schemas: {
+        body: deleteTaskTemplateRequestSchema,
+        response: { 200: deleteTaskTemplateResponseSchema },
+      },
+      handler: async (req) => {
+        try {
+          await deleteTaskTemplate({ id: req.body.id }, req.user, providers);
+          return { body: undefined };
+        } catch (e) {
+          if (e instanceof TaskTemplateNotFoundError) {
+            throw new HTTPNotFoundError("Task template not found");
+          }
+          throw e;
+        }
+      },
+    }),
+    "/task-templates/complete": defineRoute({
+      method: "POST",
+      isPublic: false,
+      schemas: {
+        body: completeTaskRequestSchema,
+        response: { 200: completeTaskResponseSchema },
+      },
+      handler: async (req) => {
+        await completeTask(
+          { localStartDate: toLocalISOString(req.body.startDate), taskTemplateId: req.body.taskTemplateId },
+          req.user,
+          providers,
+        );
+        return { body: undefined };
       },
     }),
   };

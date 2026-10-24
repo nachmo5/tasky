@@ -74,7 +74,7 @@ export const taskTemplateChangesSchema = taskTemplateSchema
   .refine((changes) => Object.keys(changes).length > 0, "Expected at least one change");
 
 export type TaskTemplateChangesDTO = z.infer<typeof taskTemplateChangesSchema>;
-
+// =========
 export const updateTaskTemplatesRequestSchema = z
   .object({
     updates: z
@@ -96,6 +96,7 @@ export const updateTaskTemplatesResponseSchema = z.array(taskTemplateSchema);
 
 export type UpdateTaskTemplatesResponse = z.infer<typeof updateTaskTemplatesResponseSchema>;
 
+// =========
 export const createTaskTemplateRequestSchema = taskTemplateSchema
   .omit({ id: true })
   .extend({ title: z.string().trim().min(1) })
@@ -106,3 +107,22 @@ export type CreateTaskTemplateRequest = z.infer<typeof createTaskTemplateRequest
 export const createTaskTemplateResponseSchema = taskTemplateSchema;
 
 export type CreateTaskTemplateResponse = z.infer<typeof createTaskTemplateResponseSchema>;
+
+// =========
+export const deleteTaskTemplateRequestSchema = z.object({ id: z.string() }).strict();
+
+export type DeleteTaskTemplateRequest = z.infer<typeof deleteTaskTemplateRequestSchema>;
+
+export const deleteTaskTemplateResponseSchema = z.undefined();
+
+export type DeleteTaskTemplateResponse = z.infer<typeof deleteTaskTemplateResponseSchema>;
+
+// =========
+
+export const completeTaskRequestSchema = z.object({ startDate: z.string(), taskTemplateId: z.string() }).strict();
+
+export type CompleteTaskRequest = z.infer<typeof completeTaskRequestSchema>;
+
+export const completeTaskResponseSchema = z.undefined();
+
+export type CompleteTaskResponse = z.infer<typeof completeTaskResponseSchema>;

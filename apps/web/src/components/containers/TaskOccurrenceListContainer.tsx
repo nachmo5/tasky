@@ -23,30 +23,14 @@ export function TaskOccurrenceListContainer() {
     ),
   );
 
-  function filterTaskOccurrences(taskOccurrences: TaskOccurrenceDTO[]) {
-    return taskOccurrences.filter((taskOccurrence) => {
-      if (taskOccurrence.status === "cancelled" || taskOccurrence.status === "done") {
-        return false;
-      }
-
-      for (const [filterName, isFilterActive] of objectEntries(filters)) {
-        if (isFilterActive && !FILTERS[filterName].filterFn(taskOccurrence)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }
-
   return (
     <GlobalConsumer
       getters={["taskOccurrences"]}
       queries={[{ name: "searchTaskOccurrences", args: [{ from, to, timeZone }] }]}
     >
-      {({ taskOccurrences }) => {
+      {({ taskOccurrences, setUpdatingTaskOccurrenceId }) => {
         const taskOccurrenceItems = autoSortTaskOccurrences(
-          filterTaskOccurrences(taskOccurrences),
+          filterTaskOccurrences(taskOccurrences, filters),
           getCurrentTimestamp(),
           timeZone,
         );
@@ -58,10 +42,26 @@ export function TaskOccurrenceListContainer() {
               filters={filters}
               onFilterChange={(filterName, filterValue) => setFilters((p) => ({ ...p, [filterName]: filterValue }))}
             />
-            <TaskOccurrenceList items={taskOccurrenceItems} />
+            <TaskOccurrenceList items={taskOccurrenceItems} onClick={setUpdatingTaskOccurrenceId} />
           </div>
         );
       }}
     </GlobalConsumer>
   );
+}
+
+function filterTaskOccurrences(taskOccurrences: TaskOccurrenceDTO[], filters: FiltersState) {
+  return taskOccurrences.filter((taskOccurrence) => {
+    if (taskOccurrence.status === "cancelled" || taskOccurrence.status === "done") {
+      return false;
+    }
+
+    for (const [filterName, isFilterActive] of objectEntries(filters)) {
+      if (isFilterActive && !FILTERS[filterName].filterFn(taskOccurrence)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }

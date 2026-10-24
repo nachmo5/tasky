@@ -3,6 +3,7 @@ import { INTERVAL_UNITS, toLocalISOString, type LocalISO, type TimeInterval } fr
 import { Input } from "../base/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../base/select";
 import { DebouncedInput } from "./DebouncedInput";
+import { camelCaseToSentence } from "@/lib/string.lib";
 
 type FieldsOfType<TRow, TValue> = {
   [K in keyof TRow]-?: TRow[K] extends TValue ? K : never;
@@ -83,12 +84,12 @@ export function EditableTableCell<TRow>({
           }}
         >
           <SelectTrigger className={cn("w-full", changedClassName)}>
-            <SelectValue />
+            <SelectValue>{camelCaseToSentence(value)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {definition.options.map((option) => (
               <SelectItem key={option} value={option}>
-                {option}
+                {camelCaseToSentence(option)}
               </SelectItem>
             ))}
           </SelectContent>

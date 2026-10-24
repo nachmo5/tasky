@@ -16,7 +16,7 @@ export function TaskOccurrenceListHeader(props: {
     <div className="flex justify-between items-center">
       <div className="flex gap-2 items-center">
         <p className="text-xs text-secondary-foreground">Filter:</p>
-        <div className="bg-secondary p-2 rounded-lg flex gap-1">
+        <div className="bg-secondary rounded-lg flex gap-1">
           {objectEntries(FILTERS).map(([filterName, filterDef]) => (
             <Button
               key={filterName}
@@ -26,7 +26,7 @@ export function TaskOccurrenceListHeader(props: {
               onClick={() => onFilterChange(filterName, !filters[filterName])}
             >
               <Barrable isBarred={filters[filterName]}>
-                <filterDef.icon size={12} />
+                <filterDef.icon />
               </Barrable>
             </Button>
           ))}

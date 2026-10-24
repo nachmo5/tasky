@@ -1,6 +1,11 @@
 import { and, eq } from "drizzle-orm";
-import { dbTaskTemplates } from "@repo/database";
-import type { NewTaskTemplate, TaskTemplate, TaskTemplateUpdate } from "../../operations/types.operation.ts";
+import { dbCompletedOccurrences, dbTaskTemplates } from "@repo/database";
+import type {
+  NewTaskTemplate,
+  TaskTemplate,
+  TaskTemplateUpdate,
+  CompletedOccurrence,
+} from "../../operations/types.operation.ts";
 import { mapToTaskTemplate } from "./adapters.database.ts";
 import type { DatabaseProvider } from "./database.provider.ts";
 
@@ -47,6 +52,20 @@ export function defineQueries(db: DatabaseProvider["client"]) {
         userId,
         updates.map((update) => update.id),
       );
+    },
+    deleteTaskTemplate: async (userId: string, id: string) => {
+      await db.delete(dbTaskTemplates).where(and(eq(dbTaskTemplates.id, id), eq(dbTaskTemplates.userId, userId)));
+    },
+    insertCompletedOccurrence: async (data: CompletedOccurrence & { taskTemplateId: TaskTemplate["id"] }) => {
+      await db
+        .insert(dbCompletedOccurrences)
+        .values({
+          taskTemplateId: data.taskTemplateId,
+          localStartDate: data.localStartDate,
+          completedAt: data.completedAt,
+          isCancelled: data.isCancelled,
+        })
+        .returning();
     },
   };
 }
