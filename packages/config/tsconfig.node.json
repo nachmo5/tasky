@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "${configDir}/node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "lib": ["ES2025"],
+    "types": ["node"],
+    "module": "nodenext",
+  },
+}
