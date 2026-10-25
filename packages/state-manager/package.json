@@ -1,0 +1,37 @@
+{
+  "name": "@repo/state-manager",
+  "version": "0.0.0",
+  "description": "State management library for react and typescript",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "immer": "^10.2.0",
+    "use-sync-external-store": "^1.2.2",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@repo/config": "*",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "jsdom": "^30.1.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.5"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}
