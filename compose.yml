@@ -1,0 +1,43 @@
+services:
+  api:
+    image: tasky-api:latest
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgresql://admin:admin@database:5432/taskydb
+      WEB_URL: http://localhost
+    expose:
+      - "3000"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  web:
+    image: tasky-web:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      API_UPSTREAM: http://api:3000
+    depends_on:
+      - api
+
+  database:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: taskydb
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres_data:

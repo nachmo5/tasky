@@ -13,10 +13,14 @@ const env = new EnvProvider();
 const log = new LogProvider({ env });
 const cache = new CacheProvider(CACHE_PREFIX_TO_TTL_S);
 const db = new DatabaseProvider({ env });
+await db.verifyConnection();
+log.info("Database connection successful");
 const auth = new AuthProvider({ db, cache });
 const http = new HttpProvider({ env, log, auth, db, cache });
 
-http.start().catch((e) => log.error(`server stopped unexpectedly ${asError(e).message}`, e));
+http.start().catch((e) => {
+  log.error(`server stopped unexpectedly ${asError(e).message}`, e);
+});
 
 // ====================
 // SHUT DOWN
