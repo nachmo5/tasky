@@ -15,7 +15,8 @@ COPY --from=pruner /app/out/full/ ./
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=installer /app/ ./
+COPY --from=installer --chown=node:node /app/ ./
+USER node
 
 EXPOSE 3000
 
