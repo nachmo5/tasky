@@ -80,6 +80,6 @@ function TaskTemplateHeader(props: {
 function filterTaskTemplates(taskTemplates: TaskTemplateDTO[]) {
   // ignore completed one shot occurrences
   return taskTemplates.filter(
-    (taskTemplate) => !!taskTemplate.nextOccurrenceEvery || taskTemplate.completedOccurrences.length > 1,
+    (taskTemplate) => !!taskTemplate.nextOccurrenceEvery || taskTemplate.completedOccurrences.length === 0,
   );
 }

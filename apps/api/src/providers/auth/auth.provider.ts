@@ -29,6 +29,7 @@ export class AuthProvider {
       throw new InvalidCredentialsError();
     }
 
+    await this.providers.cache.delete("login-attempts", [username]);
     const [sessionRow] = await this.providers.db.client
       .insert(dbSessions)
       .values({

@@ -12,7 +12,7 @@ export function LoginContainer() {
           form={{
             onSubmit: (e) => {
               e.preventDefault();
-              const formData = new FormData(e.target);
+              const formData = new FormData(e.currentTarget);
 
               const email = (formData.get("email") as string | undefined)?.toString();
               const password = (formData.get("password") as string | undefined)?.toString();

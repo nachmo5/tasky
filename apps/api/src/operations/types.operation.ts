@@ -26,6 +26,7 @@ export type TaskTemplateChanges = Partial<
     | "firstOccurrenceLocalStartDate"
     | "nextOccurrenceEvery"
     | "tags"
+    | "pinnedAt"
   >
 >;
 

@@ -20,6 +20,8 @@ function BackupContainer() {
   const { searchTaskTemplates } = useGlobalQueries(["searchTaskTemplates"]);
   const { taskTemplates } = useGlobalGetters(["taskTemplates"]);
 
+  const key = taskTemplates.map((tt) => tt.id).join(",");
+
   useEffect(() => {
     if (searchTaskTemplates.status === "success" && taskTemplates.length > 0) {
       localStorage.setItem(
@@ -31,7 +33,7 @@ function BackupContainer() {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTaskTemplates.status, taskTemplates.length]);
+  }, [searchTaskTemplates.status, key]);
 
   return <></>;
 }

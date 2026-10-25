@@ -37,11 +37,18 @@ export function taskTemplateToDTO(taskTemplate: TaskTemplate): TaskTemplateDTO {
 }
 
 export function taskTemplateChangesFromDTO(changes: TaskTemplateChangesDTO): TaskTemplateChanges {
-  const { priority, firstOccurrenceStartDate, ...sameNameChanges } = changes;
+  const {
+    priority,
+    firstOccurrenceStartDate,
+    pinnedAt,
+    completedOccurrences: _completedOccurrences,
+    ...sameNameChanges
+  } = changes;
   return {
     ...sameNameChanges,
     ...(priority ? { priority: mapTaskPriorityToNumber(priority) } : {}),
     ...(firstOccurrenceStartDate ? { firstOccurrenceLocalStartDate: firstOccurrenceStartDate } : {}),
+    ...(pinnedAt !== undefined ? { pinnedAt: pinnedAt === null ? null : new Date(pinnedAt) } : {}),
   };
 }
 

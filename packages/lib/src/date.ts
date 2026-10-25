@@ -81,9 +81,10 @@ export function getMonthGridCalendarDates(year: number, month: number): LocalISO
   const offset = (firstDayOfMonth.dayOfWeek - MONDAY + 7) % 7;
   const firstDateOfCalendar = firstDayOfMonth.subtract({ days: offset });
 
-  // Generate 35 days (5 rows * 7 columns)
+  // Generate full weeks covering the month (4 to 6 rows)
+  const nbOfRows = Math.ceil((offset + firstDayOfMonth.daysInMonth) / 7);
   const days: LocalISO[] = [];
-  for (let i = 0; i < 35; i++) {
+  for (let i = 0; i < nbOfRows * 7; i++) {
     days.push(toLocalISOString(firstDateOfCalendar.add({ days: i }).toString()));
   }
   return days;
