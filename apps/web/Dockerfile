@@ -2,7 +2,7 @@ FROM node:24-alpine AS base
 WORKDIR /app
 
 FROM base AS pruner
-RUN npm install -g turbo@2.0.0
+RUN npm install -g turbo@2.10.13
 COPY . .
 RUN turbo prune @repo/web --docker
 
