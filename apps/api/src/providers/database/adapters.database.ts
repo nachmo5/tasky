@@ -17,6 +17,7 @@ export function mapToTaskTemplate(
     firstOccurrenceLocalStartDate: taskTemplateRow.firstOccurrenceLocalStartDate,
     nextOccurrenceEvery: taskTemplateRow.nextOccurrenceEvery,
     tags: taskTemplateRow.tags ?? {},
+    pinnedAt: taskTemplateRow.pinnedAt,
     completedOccurrences: taskTemplateRow.dbCompletedOccurrences.map((completedOccurrence) => ({
       localStartDate: completedOccurrence.localStartDate,
       completedAt: completedOccurrence.completedAt,

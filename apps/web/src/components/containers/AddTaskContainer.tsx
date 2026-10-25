@@ -38,5 +38,6 @@ function buildNewTaskTemplateRequest(title: string): CreateTaskTemplateRequest {
     firstOccurrenceStartDate: getPreviousDate(0, "00:00:00"),
     nextOccurrenceEvery: null,
     overdueAfter: { count: 1, unit: "days" },
+    pinnedAt: null,
   };
 }

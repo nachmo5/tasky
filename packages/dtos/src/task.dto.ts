@@ -5,7 +5,7 @@ import { LocalISOSchema, TimeIntervalSchema, TimeZoneSchema } from "./shared/dat
 // MODEL =========================
 // ===============================
 
-export const taskStatusEnumSchema = z.enum(["pending", "overdue", "done", "cancelled"]);
+export const taskStatusEnumSchema = z.enum(["pending", "done", "cancelled"]);
 
 export const taskPriorityEnumSchema = z.enum(["low", "medium", "high"]);
 
@@ -19,6 +19,14 @@ export const taskTemplateSchema = z.object({
   firstOccurrenceStartDate: LocalISOSchema,
   nextOccurrenceEvery: TimeIntervalSchema.nullable(),
   overdueAfter: TimeIntervalSchema.nullable(),
+  pinnedAt: z.string().nullable(),
+  completedOccurrences: z.array(
+    z.object({
+      localStartDate: LocalISOSchema,
+      completedAt: z.string(),
+      isCancelled: z.boolean(),
+    }),
+  ),
 });
 
 export type TaskTemplateDTO = z.infer<typeof taskTemplateSchema>;
@@ -98,7 +106,7 @@ export type UpdateTaskTemplatesResponse = z.infer<typeof updateTaskTemplatesResp
 
 // =========
 export const createTaskTemplateRequestSchema = taskTemplateSchema
-  .omit({ id: true })
+  .omit({ id: true, completedOccurrences: true })
   .extend({ title: z.string().trim().min(1) })
   .strict();
 

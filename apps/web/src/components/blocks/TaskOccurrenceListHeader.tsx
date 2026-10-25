@@ -1,13 +1,14 @@
 import { Button } from "../base/button";
 import { cn } from "cn";
-import { Badge } from "../base/badge";
 import { objectEntries } from "@repo/lib";
 import type { ReactNode } from "react";
 import type { FiltersState } from "@/config/filters";
 import { FILTERS } from "@/config/filters";
+import { Link } from "react-router";
+import { getRoute } from "@/config/routes";
+import { CalendarIcon, SettingsIcon } from "lucide-react";
 
 export function TaskOccurrenceListHeader(props: {
-  nbOfTaskOccurrences: number;
   filters: FiltersState;
   onFilterChange: (filterName: keyof FiltersState, filterValue: boolean) => void;
 }) {
@@ -21,7 +22,7 @@ export function TaskOccurrenceListHeader(props: {
             <Button
               key={filterName}
               variant="ghost"
-              size="icon"
+              size="icon-lg"
               className={cn(filters[filterName] && "bg-primary/50")}
               onClick={() => onFilterChange(filterName, !filters[filterName])}
             >
@@ -32,7 +33,17 @@ export function TaskOccurrenceListHeader(props: {
           ))}
         </div>
       </div>
-      <Badge>{props.nbOfTaskOccurrences}</Badge>
+
+      <div className="flex gap-2 items-center">
+        <div className="rounded-lg flex gap-6">
+          <Link to={getRoute("/task-templates")}>
+            <SettingsIcon />
+          </Link>
+          <Link to={getRoute("/calendar")}>
+            <CalendarIcon />
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

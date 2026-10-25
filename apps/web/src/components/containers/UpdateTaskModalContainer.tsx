@@ -1,7 +1,7 @@
 import { useGlobalGetters, useGlobalMutations, useGlobalSetters } from "@/config/store";
 import { UpdateTaskModal } from "../blocks/UpdateTaskModal";
-import { toast } from "../base/toast";
 import { useCallback } from "react";
+import { toast } from "../base/toast-context";
 
 export function UpdateTaskModalContainer() {
   const { taskOccurrences, updatingTaskOccurrenceId } = useGlobalGetters([
@@ -47,6 +47,7 @@ export function UpdateTaskModalContainer() {
           toast.add({
             title: "Task saved",
           });
+          setUpdatingTaskOccurrenceId(null);
         });
       }}
       onComplete={onComplete}

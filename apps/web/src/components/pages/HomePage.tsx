@@ -1,6 +1,9 @@
+import { useGlobalGetters, useGlobalQueries } from "@/config/store";
 import { AddTaskContainer } from "../containers/AddTaskContainer";
 import { TaskOccurrenceListContainer } from "../containers/TaskOccurrenceListContainer";
 import { UpdateTaskModalContainer } from "../containers/UpdateTaskModalContainer";
+import { useEffect } from "react";
+import { LOCAL_STORAGE_KEYS } from "@/config/localStorage";
 
 export function HomePage() {
   return (
@@ -8,6 +11,27 @@ export function HomePage() {
       <TaskOccurrenceListContainer />
       <AddTaskContainer />
       <UpdateTaskModalContainer />
+      <BackupContainer />
     </div>
   );
+}
+
+function BackupContainer() {
+  const { searchTaskTemplates } = useGlobalQueries(["searchTaskTemplates"]);
+  const { taskTemplates } = useGlobalGetters(["taskTemplates"]);
+
+  useEffect(() => {
+    if (searchTaskTemplates.status === "success" && taskTemplates.length > 0) {
+      localStorage.setItem(
+        LOCAL_STORAGE_KEYS["BACKUP"],
+        JSON.stringify({
+          version: new Date().toLocaleString(),
+          data: taskTemplates,
+        }),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTaskTemplates.status, taskTemplates.length]);
+
+  return <></>;
 }

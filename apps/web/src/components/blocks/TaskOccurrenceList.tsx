@@ -2,22 +2,22 @@ import { Card } from "../base/card";
 import { RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { MINUTE_TO_MS } from "@repo/lib";
 import { cn } from "cn";
-import { formatDurationMs, type TaskOccurrenceListItem } from "@/lib/taskOccurrence.lib";
+import { checkIsTaskOccurrenceOverdue, formatDurationMs } from "@/lib/taskOccurrence.lib";
+import type { TaskOccurrence } from "@/config/store";
 
-export function TaskOccurrenceList(props: {
-  items: TaskOccurrenceListItem[];
-  onClick: (taskOccurrenceId: string) => void;
-}) {
+export type TaskOccurrenceListProps = { items: TaskOccurrence[]; onClick: (taskOccurrenceId: string) => void };
+
+export function TaskOccurrenceList(props: TaskOccurrenceListProps) {
   return (
     <div className="flex flex-col gap-2">
-      {props.items.map(({ taskOccurrence, timeToDueMs }) => (
+      {props.items.map((taskOccurrence) => (
         <Card
           onClick={() => props.onClick(taskOccurrence.id)}
           key={taskOccurrence.id}
           className={cn(
             "grid grid-cols-[1fr_max-content_max-content_max-content_max-content] items-center px-2 gap-2",
             {
-              "border border-red-500/50": taskOccurrence.status === "overdue",
+              "border border-red-500/50": checkIsTaskOccurrenceOverdue(taskOccurrence),
             },
             "text-secondary-foreground",
           )}
@@ -32,7 +32,9 @@ export function TaskOccurrenceList(props: {
               medium: <p />,
             }[taskOccurrence.template.priority]
           }
-          <p className="text-xs text-primary">{timeToDueMs === null ? "" : formatDurationMs(timeToDueMs)}</p>
+          <p className="text-xs text-primary">
+            {taskOccurrence.timeToDueDateMs === null ? "" : formatDurationMs(taskOccurrence.timeToDueDateMs)}
+          </p>
         </Card>
       ))}
     </div>

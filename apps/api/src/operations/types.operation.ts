@@ -10,6 +10,7 @@ export type TaskTemplate = {
   overdueAfter: TimeInterval | null;
   firstOccurrenceLocalStartDate: LocalISO;
   nextOccurrenceEvery: TimeInterval | null;
+  pinnedAt: Date | null;
   tags: Record<string, string>;
   completedOccurrences: CompletedOccurrence[];
 };
@@ -43,7 +44,7 @@ export type CompletedOccurrence = {
 
 export type TaskOccurrence = {
   id: string;
-  status: "pending" | "overdue" | "done" | "cancelled";
+  status: "pending" | "done" | "cancelled";
   localStartDate: LocalISO;
   localDueDate: LocalISO | null;
   taskTemplate: TaskTemplate;

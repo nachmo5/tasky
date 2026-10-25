@@ -1,39 +1,34 @@
-import type { TaskOccurrenceDTO, TaskTemplateDTO } from "@repo/dtos";
+import type { TaskOccurrence } from "@/config/store";
+import type { TaskTemplateDTO } from "@repo/dtos";
 import { DAY_TO_MS, HOUR_TO_MS, MINUTE_TO_MS, toTimestamp } from "@repo/lib";
 
-export type TaskOccurrenceListItem = {
-  taskOccurrence: TaskOccurrenceDTO;
-  timeToDueMs: number | null;
-};
-
 export function autoSortTaskOccurrences(
-  taskOccurrences: TaskOccurrenceDTO[],
+  taskOccurrences: TaskOccurrence[],
   now: number,
   timeZone: string,
-): TaskOccurrenceListItem[] {
+): TaskOccurrence[] {
   return taskOccurrences
     .map((taskOccurrence) => {
       const dueTimestamp = taskOccurrence.dueDate ? toTimestamp(taskOccurrence.dueDate, timeZone) : Infinity;
       return {
         taskOccurrence,
-        dueTimestamp,
-        priorityLevel: computeEffectivePriorityLevel(taskOccurrence.template, dueTimestamp, now),
-        nbOfDaysLeft: computeNbOfDaysLeft(dueTimestamp, now),
-        score: computeScore(taskOccurrence.template, dueTimestamp, now),
+        sortData: {
+          dueTimestamp,
+          priorityLevel: computeEffectivePriorityLevel(taskOccurrence.template, dueTimestamp, now),
+          nbOfDaysLeft: computeNbOfDaysLeft(dueTimestamp, now),
+          score: computeScore(taskOccurrence.template, dueTimestamp, now),
+        },
       };
     })
     .toSorted(
       (first, second) =>
-        second.priorityLevel - first.priorityLevel ||
-        compareNbOfDaysLeft(first.nbOfDaysLeft, second.nbOfDaysLeft) ||
-        second.score - first.score ||
-        first.dueTimestamp - second.dueTimestamp ||
+        second.sortData.priorityLevel - first.sortData.priorityLevel ||
+        compareNbOfDaysLeft(first.sortData.nbOfDaysLeft, second.sortData.nbOfDaysLeft) ||
+        second.sortData.score - first.sortData.score ||
+        first.sortData.dueTimestamp - second.sortData.dueTimestamp ||
         first.taskOccurrence.template.title.localeCompare(second.taskOccurrence.template.title),
     )
-    .map(({ taskOccurrence, dueTimestamp }) => ({
-      taskOccurrence,
-      timeToDueMs: Number.isFinite(dueTimestamp) ? dueTimestamp - now : null,
-    }));
+    .map(({ taskOccurrence }) => taskOccurrence);
 }
 
 function computeEffectivePriorityLevel(template: TaskTemplateDTO, dueTimestamp: number, now: number) {
@@ -69,6 +64,10 @@ function computeUrgency(dueTimestamp: number, now: number) {
     return 1 + MAX_URGENCY_BOOST / (1 + timeLeftMs / URGENCY_HALF_LIFE_MS);
   }
   return 1 + MAX_URGENCY_BOOST + LATENESS_URGENCY_GROWTH * Math.log1p(-timeLeftMs / ONE_DAY_MS);
+}
+
+export function checkIsTaskOccurrenceOverdue(taskOccurrence: TaskOccurrence): boolean {
+  return (taskOccurrence.timeToDueDateMs ?? Infinity) < 0;
 }
 
 // ===============================

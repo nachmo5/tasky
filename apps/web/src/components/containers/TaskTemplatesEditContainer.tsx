@@ -1,8 +1,11 @@
-import type { TaskTemplateChangesDTO } from "@repo/dtos";
+import type { TaskTemplateChangesDTO, TaskTemplateDTO } from "@repo/dtos";
 import { useState } from "react";
 import { GlobalConsumer } from "@/config/store";
 import { TaskTemplateTable } from "../blocks/TaskTemplateTable";
 import { Button } from "../base/button";
+import { getRoute } from "@/config/routes";
+import { Link } from "react-router";
+import { buttonVariants } from "@/lib/css.lib";
 
 export function TaskTemplatesEditContainer() {
   const [taskTemplateChanges, setTaskTemplateChanges] = useState<Record<string, TaskTemplateChangesDTO>>({});
@@ -28,7 +31,7 @@ export function TaskTemplatesEditContainer() {
       <GlobalConsumer getters={["taskTemplates"]} queries={["searchTaskTemplates"]}>
         {({ taskTemplates }) => (
           <TaskTemplateTable
-            taskTemplates={taskTemplates.map((taskTemplate) => ({
+            taskTemplates={filterTaskTemplates(taskTemplates).map((taskTemplate) => ({
               ...taskTemplate,
               ...taskTemplateChanges[taskTemplate.id],
             }))}
@@ -61,11 +64,22 @@ function TaskTemplateHeader(props: {
       <Button variant="ghost" disabled={props.nbOfChanges === 0 || props.isSaving} onClick={props.onDiscard}>
         Discard
       </Button>
+      <Link to={getRoute("/")} className={buttonVariants({ variant: "default" })}>
+        {" "}
+        Go Home
+      </Link>
       {props.saveError && (
         <p role="alert" className="text-sm text-destructive">
           {props.saveError}
         </p>
       )}
     </div>
+  );
+}
+
+function filterTaskTemplates(taskTemplates: TaskTemplateDTO[]) {
+  // ignore completed one shot occurrences
+  return taskTemplates.filter(
+    (taskTemplate) => !!taskTemplate.nextOccurrenceEvery || taskTemplate.completedOccurrences.length > 1,
   );
 }

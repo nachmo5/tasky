@@ -8,6 +8,22 @@ export const MINUTE_TO_MS = 60 * 1000;
 export const HOUR_TO_MS = 60 * MINUTE_TO_MS;
 export const DAY_TO_MS = 24 * HOUR_TO_MS;
 
+export const WEEK_DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+export const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 export function addInterval(localDate: LocalISO, interval: TimeInterval, timeZone: string): LocalISO {
   return toRealDate(localDate, timeZone)
     .add({ [interval.unit]: interval.count })
@@ -56,4 +72,23 @@ export function getPreviousDate(days: number, time?: string): LocalISO {
   }
   const result = Temporal.Now.plainDateISO().subtract({ days });
   return `${result.toString()}T${time ?? "00:00:00"}` as LocalISO;
+}
+
+export function getMonthGridCalendarDates(year: number, month: number): LocalISO[] {
+  const firstDayOfMonth = Temporal.PlainDate.from({ year, month, day: 1 });
+  const MONDAY = 1;
+  // start calendar on a monday, even if previous month
+  const offset = (firstDayOfMonth.dayOfWeek - MONDAY + 7) % 7;
+  const firstDateOfCalendar = firstDayOfMonth.subtract({ days: offset });
+
+  // Generate 35 days (5 rows * 7 columns)
+  const days: LocalISO[] = [];
+  for (let i = 0; i < 35; i++) {
+    days.push(toLocalISOString(firstDateOfCalendar.add({ days: i }).toString()));
+  }
+  return days;
+}
+
+export function getNbOfDaysInMonth(year: number, month: number) {
+  return Temporal.PlainDate.from({ year, month, day: 1 }).daysInMonth;
 }

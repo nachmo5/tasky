@@ -19,14 +19,19 @@ import {
   type UpdateTaskTemplatesResponse,
   type UserDTO,
 } from "@repo/dtos";
+import { getCurrentTimestamp, toTimestamp } from "@repo/lib";
 import { createStore } from "@repo/state-manager";
 
 type GlobalStore = {
   user: UserDTO | null;
-  taskOccurrences: TaskOccurrenceDTO[];
+  taskOccurrences: TaskOccurrence[];
   taskTemplates: TaskTemplateDTO[];
   isAddModalOpened: boolean;
   updatingTaskOccurrenceId: string | null;
+};
+
+export type TaskOccurrence = TaskOccurrenceDTO & {
+  timeToDueDateMs: number | null;
 };
 
 export const globalStoreInitialValue: GlobalStore = {
@@ -46,7 +51,7 @@ const globalStore = createStore<GlobalStore>()
     updatingTaskOccurrenceId: (state) => state.updatingTaskOccurrenceId,
   })
   .addSetters({
-    setTaskOccurrences: (state, taskOccurrences: TaskOccurrenceDTO[]) => (state.taskOccurrences = taskOccurrences),
+    setTaskOccurrences: (state, taskOccurrences: TaskOccurrence[]) => (state.taskOccurrences = taskOccurrences),
     setTaskTemplates: (state, taskTemplates: TaskTemplateDTO[]) => (state.taskTemplates = taskTemplates),
     replaceTaskTemplates: (state, updatedTaskTemplates: TaskTemplateDTO[]) => {
       state.taskTemplates = state.taskTemplates.map(
@@ -68,11 +73,16 @@ const globalStore = createStore<GlobalStore>()
   })
   .addQueries({
     searchTaskOccurrences: async (state, data: SearchTaskOccurrencesRequest) => {
+      const taskOccurrenceDtos = await sendRequest<SearchTaskOccurrencesResponse>("/task-occurrences", {
+        queryString: data,
+        signal: state.signal,
+      });
+      const now = getCurrentTimestamp();
       state.setTaskOccurrences(
-        await sendRequest<SearchTaskOccurrencesResponse>("/task-occurrences", {
-          queryString: data,
-          signal: state.signal,
-        }),
+        taskOccurrenceDtos.map((to) => ({
+          ...to,
+          timeToDueDateMs: to.dueDate ? toTimestamp(to.dueDate, data.timeZone) - now : null,
+        })),
       );
     },
     searchTaskTemplates: async (state) => {
@@ -98,6 +108,7 @@ const globalStore = createStore<GlobalStore>()
       state.replaceTaskTemplates(
         await sendRequest<UpdateTaskTemplatesResponse>("/task-templates/update", { body: data, method: "PATCH" }),
       );
+      await state.refetchQueries("searchTaskOccurrences");
     },
     createTaskTemplate: async (state, data: CreateTaskTemplateRequest) => {
       state.addTaskTemplate(

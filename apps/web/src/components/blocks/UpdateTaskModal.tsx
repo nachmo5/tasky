@@ -5,6 +5,7 @@ import { Button } from "../base/button";
 import type { EditableColumnDefinition } from "./EditableTableCell";
 import { EditableTableCell } from "./EditableTableCell";
 import { camelCaseToSentence } from "@/lib/string.lib";
+import { PinIcon } from "lucide-react";
 
 const COUNTER_TO_CONFIRM = 3;
 
@@ -50,7 +51,7 @@ export function UpdateTaskModal(props: {
 
   return (
     <Dialog open={props.isOpened} onOpenChange={() => props.onClose()}>
-      <DialogContent showCloseButton={false}>
+      <DialogContent showCloseButton={false} initialFocus={false}>
         <div className="grid grid-cols-2 gap-4">
           {fieldDefinitions.map((definition) => (
             <div key={definition.name} className={definition.isFullRow ? "col-span-2" : ""}>
@@ -81,11 +82,27 @@ export function UpdateTaskModal(props: {
             {props.isLoading ? "Deleting…" : "Delete"} {deleteCounter > 0 && `+${deleteCounter}`}
           </Button>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-1">
+            <Button
+              disabled={props.isLoading}
+              className="flex-1"
+              variant={updatedTaskTemplate.pinnedAt ? "default" : "secondary"}
+              size="lg"
+              onClick={() => {
+                props.onSave({
+                  ...updatedTaskTemplate,
+                  pinnedAt: updatedTaskTemplate.pinnedAt ? null : new Date().toISOString(),
+                });
+              }}
+            >
+              {props.isLoading ? "Pinning…" : updatedTaskTemplate.pinnedAt ? "UnPin" : "Pin"}
+              <PinIcon />
+            </Button>
             <Button disabled={props.isLoading} size="lg" onClick={() => props.onSave(updatedTaskTemplate)}>
               {props.isLoading ? "Saving…" : "Save"}
             </Button>
             <Button
+              autoFocus
               className="bg-green-800 text-white"
               size="lg"
               disabled={props.isLoading}

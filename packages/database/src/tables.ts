@@ -65,6 +65,7 @@ export const dbTaskTemplates = pgTable("task_templates", {
   firstOccurrenceLocalStartDate: localTimestamp("first_occurrence_start_date").notNull(),
   nextOccurrenceEvery: jsonb("next_occurrence_every").$type<TimeInterval>(),
   tags: jsonb().default({}).$type<Record<string, string>>(),
+  pinnedAt: timestamp("pinned_at", { withTimezone: true }),
   userId: uuid("user_id")
     .notNull()
     .references(() => dbUsers.id, { onDelete: "cascade" }),

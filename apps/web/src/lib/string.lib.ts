@@ -10,3 +10,7 @@ export function camelCaseToSentence(str: string) {
     .toLowerCase();
   return capitalize(words);
 }
+
+export function padN(n: number): string {
+  return String(n).padStart(2, "0");
+}

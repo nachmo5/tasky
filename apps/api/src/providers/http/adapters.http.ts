@@ -28,6 +28,11 @@ export function taskTemplateToDTO(taskTemplate: TaskTemplate): TaskTemplateDTO {
     firstOccurrenceStartDate: taskTemplate.firstOccurrenceLocalStartDate,
     nextOccurrenceEvery: taskTemplate.nextOccurrenceEvery,
     overdueAfter: taskTemplate.overdueAfter,
+    pinnedAt: taskTemplate.pinnedAt?.toISOString() ?? null,
+    completedOccurrences: taskTemplate.completedOccurrences.map((co) => ({
+      ...co,
+      completedAt: co.completedAt.toISOString(),
+    })),
   };
 }
 
@@ -45,6 +50,7 @@ export function mapToNewTaskTemplate(taskTemplate: CreateTaskTemplateRequest): N
   return {
     ...sameNameFields,
     priority: mapTaskPriorityToNumber(priority),
+    pinnedAt: null,
     firstOccurrenceLocalStartDate: firstOccurrenceStartDate,
   };
 }

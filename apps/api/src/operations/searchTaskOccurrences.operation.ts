@@ -1,11 +1,4 @@
-import {
-  addInterval,
-  differenceBetweenDates,
-  getCurrentTimestamp,
-  toTimestamp,
-  type LocalISO,
-  type TimeInterval,
-} from "@repo/lib";
+import { addInterval, differenceBetweenDates, toTimestamp, type LocalISO, type TimeInterval } from "@repo/lib";
 import type { Providers } from "../providers/types.provider.ts";
 import type { TaskOccurrence, TaskTemplate, User } from "./types.operation.ts";
 
@@ -36,7 +29,6 @@ function generateTaskOccurrences(args: {
   const { taskTemplate, fromLocal, toLocal, timeZone } = args;
   const fromLocalTimestamp = toTimestamp(fromLocal, timeZone);
   const toLocalTimestamp = toTimestamp(toLocal, timeZone);
-  const now = getCurrentTimestamp();
   // One SHOT
   if (!taskTemplate.nextOccurrenceEvery) {
     return toLocalTimestamp < toTimestamp(taskTemplate.firstOccurrenceLocalStartDate, timeZone)
@@ -46,7 +38,6 @@ function generateTaskOccurrences(args: {
             taskTemplate,
             localStartDate: taskTemplate.firstOccurrenceLocalStartDate,
             timeZone,
-            now,
           }),
         ];
   }
@@ -63,7 +54,6 @@ function generateTaskOccurrences(args: {
     const taskOccurrence = generateTaskOccurrence({
       taskTemplate,
       timeZone,
-      now,
       localStartDate: addInterval(
         taskTemplate.firstOccurrenceLocalStartDate,
         {
@@ -88,9 +78,8 @@ function generateTaskOccurrence(args: {
   taskTemplate: TaskTemplate;
   localStartDate: LocalISO;
   timeZone: string;
-  now: number;
 }): TaskOccurrence {
-  const { taskTemplate, localStartDate, timeZone, now } = args;
+  const { taskTemplate, localStartDate, timeZone } = args;
 
   const localDueDate = taskTemplate.overdueAfter
     ? addInterval(localStartDate, taskTemplate.overdueAfter, timeZone)
@@ -101,17 +90,15 @@ function generateTaskOccurrence(args: {
 
   if (completedOccurrence) {
     status = completedOccurrence.isCancelled ? "cancelled" : "done";
-  } else if (localDueDate && now > toTimestamp(localDueDate, timeZone)) {
-    status = "overdue";
   }
 
   return {
-    id: taskTemplate.id + "_" + localStartDate,
+    id: localStartDate + "_" + taskTemplate.id,
     status,
     localStartDate,
     localDueDate,
     taskTemplate,
-    completedAt: completedOccurrence?.completedAt || null,
+    completedAt: completedOccurrence?.completedAt ?? null,
   };
 }
 
