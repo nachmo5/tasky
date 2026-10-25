@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "npx tsc",
     "start": "node ./src/main.ts",
     "lint": "eslint .",
     "typecheck": "tsc"
