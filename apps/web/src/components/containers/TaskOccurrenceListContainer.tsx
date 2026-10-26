@@ -19,8 +19,8 @@ export function TaskOccurrenceListContainer() {
       (
         acc: FiltersState,
 
-        [filterName],
-      ) => ({ ...acc, [filterName]: false }),
+        [filterName, opts],
+      ) => ({ ...acc, [filterName]: opts.defaultValue }),
       {} as FiltersState,
     ),
   );

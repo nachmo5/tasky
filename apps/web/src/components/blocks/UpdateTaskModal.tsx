@@ -79,7 +79,7 @@ export function UpdateTaskModal(props: {
             variant="destructive"
             onClick={() => setDeleteCounter((p) => p + 1)}
           >
-            {props.isLoading ? "Deleting…" : "Delete"} {deleteCounter > 0 && `+${deleteCounter}`}
+            Delete {deleteCounter > 0 && `+${deleteCounter}`}
           </Button>
 
           <div className="flex gap-4 flex-1">
@@ -95,11 +95,11 @@ export function UpdateTaskModal(props: {
                 });
               }}
             >
-              {props.isLoading ? "Pinning…" : updatedTaskTemplate.pinnedAt ? "UnPin" : "Pin"}
+              {updatedTaskTemplate.pinnedAt ? "UnPin" : "Pin"}
               <PinIcon />
             </Button>
             <Button disabled={props.isLoading} size="lg" onClick={() => props.onSave(updatedTaskTemplate)}>
-              {props.isLoading ? "Saving…" : "Save"}
+              Save
             </Button>
             <Button
               autoFocus
@@ -108,7 +108,7 @@ export function UpdateTaskModal(props: {
               disabled={props.isLoading}
               onClick={() => setCompleteCounter((p) => p + 1)}
             >
-              {props.isLoading ? "Completing" : "Complete"} {completeCounter > 0 && `+${completeCounter}`}
+              Complete {completeCounter > 0 && `+${completeCounter}`}
             </Button>
           </div>
         </DialogFooter>
